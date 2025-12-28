@@ -1,22 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
-import { auth } from "../../firebaseConfig";
-// import { auth } from "../firebaseConfig.js";
+import ComponentDemoScreen from "../../src/screens/ComponentDemoScreen";
 
-export default function Index() {
-  console.log("Firebase initialized:", auth.app.name);
-
-  return (
-    <View style={styles.container}>
-      <Text>BillVault - Firebase Connected! ✅</Text>
-    </View>
-  );
+export default function App() {
+  return <ComponentDemoScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
