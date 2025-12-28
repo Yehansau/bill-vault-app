@@ -1,11 +1,19 @@
+import { LinearGradient } from "expo-linear-gradient";
 import {
-  TouchableOpacity,
-  Text,
   ActivityIndicator,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  variant?: "primary" | "secondary";
+}
 
 export default function CustomButton({
   title,
@@ -13,7 +21,7 @@ export default function CustomButton({
   loading = false,
   disabled = false,
   variant = "primary", // 'primary' or 'secondary'
-}) {
+}: ButtonProps) {
   const isDisabled = disabled || loading;
 
   const Wrapper = TouchableOpacity;
@@ -47,7 +55,7 @@ export default function CustomButton({
   ];
 
   // Colors for the inner LinearGradient (white for disabled primary, gradient otherwise)
-  const primaryGradientColors = isPrimaryAndDisabled
+  const primaryGradientColors: readonly [string, string] = isPrimaryAndDisabled
     ? ["#FFFFFF", "#FFFFFF"]
     : ["#3B1E54", "#8342BA"];
 
@@ -61,7 +69,9 @@ export default function CustomButton({
       <InnerContainer
         style={innerContainerStyles}
         // Only pass colors prop if it's actually the LinearGradient component
-        colors={variant === "primary" ? primaryGradientColors : undefined}
+        colors={
+          variant === "primary" ? primaryGradientColors : ["#fff", "#000"]
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
       >
@@ -112,7 +122,7 @@ const styles = StyleSheet.create({
   // Text Styles
   buttonText: {
     color: "#FFF", // Primary button text remains white
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
   },
   buttonTextSecondary: {

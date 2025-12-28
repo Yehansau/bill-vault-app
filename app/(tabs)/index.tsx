@@ -1,5 +1,5 @@
-import ComponentDemoScreen from "../../src/screens/ComponentDemoScreen";
+import WelcomeScreen from "../auth";
 
 export default function App() {
-  return <ComponentDemoScreen />;
+  return <WelcomeScreen />;
 }

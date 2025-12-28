@@ -1,4 +1,20 @@
-import { View, TextInput, Text, StyleSheet } from "react-native";
+import {
+  KeyboardTypeOptions,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+
+interface InputProps {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  error?: string;
+}
 
 export default function CustomInput({
   label,
@@ -8,7 +24,7 @@ export default function CustomInput({
   secureTextEntry = false,
   keyboardType = "default",
   error,
-}) {
+}: InputProps) {
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
