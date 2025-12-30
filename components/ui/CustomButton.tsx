@@ -90,12 +90,29 @@ export default function CustomButton({
 
 const styles = StyleSheet.create({
   button: {
+  borderRadius: 20,
+  width: "100%",
+  minHeight: 60,              // 🔼 slightly bigger
+  alignItems: "center",       // ✅ REQUIRED
+  justifyContent: "center",   // ✅ REQUIRED
+  overflow: "hidden",
+},
+
+buttonText: {
+  color: "#FFF",
+  fontSize: 20,
+  fontWeight: "600",
+  lineHeight: 24,             // ✅ VERY IMPORTANT
+  textAlign: "center",
+},
+
+  /*button: {
     borderRadius: 20,
     padding: 0,
     width: "100%",
     minHeight: 50,
     overflow: "hidden",
-  },
+  },*/
   innerGradientContainer: {
     padding: 16,
     alignItems: "center",
@@ -115,11 +132,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderColor: "#B5A7D8",
   },
-  buttonText: {
+
+  /*buttonText: {
     color: "#FFF",
     fontSize: 20,
     fontWeight: "600",
-  },
+  },*/
+
   buttonTextSecondary: {
     color: "#000000",
     fontWeight: "bold",
