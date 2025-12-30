@@ -2,7 +2,7 @@ import profile from "@/assets/images/profile.png";
 import { CustomButton, CustomInput } from "@/components/ui";
 
 import { Checkbox } from "expo-checkbox";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
@@ -32,8 +32,8 @@ const RegisterScreen = () => {
 
   const validatePassword = (text: string) => {
     setPassword(text);
-    if (text && text.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    if (text && text.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
     } else {
       setPasswordError("");
     }
@@ -51,6 +51,7 @@ const RegisterScreen = () => {
   const handlePress = () => {
     // Validate all fields before submitting
     if (
+      !name ||
       !email ||
       emailError ||
       !password ||
@@ -64,6 +65,7 @@ const RegisterScreen = () => {
     setIsLoading(true);
     // TODO: Member 1 will implement actual registration logic
     setTimeout(() => setIsLoading(false), 2000);
+    router.push("/(tabs)/explore");
   };
 
   return (
