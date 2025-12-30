@@ -1,5 +1,5 @@
 import profile from "@/assets/images/profile.png";
-import { CustomButton, CustomInput } from "@/src/components";
+import { CustomButton, CustomInput } from "@/components/ui";
 
 import { Checkbox } from "expo-checkbox";
 import { Link } from "expo-router";
@@ -15,9 +15,54 @@ const RegisterScreen = () => {
   const [number, setNumber] = useState("");
   const [loading, setIsLoading] = useState(false);
 
-  const handlePress = () => {
-    setIsLoading(true);
+  // Add validation states
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
+  const validateEmail = (text: string) => {
+    setEmail(text);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (text && !emailRegex.test(text)) {
+      setEmailError("Please enter a valid email");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const validatePassword = (text: string) => {
+    setPassword(text);
+    if (text && text.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+    } else {
+      setPasswordError("");
+    }
+  };
+
+  const validateConfirmPassword = (text: string) => {
+    setConfirmPassword(text);
+    if (text && text !== password) {
+      setConfirmPasswordError("Passwords do not match");
+    } else {
+      setConfirmPasswordError("");
+    }
+  };
+
+  const handlePress = () => {
+    // Validate all fields before submitting
+    if (
+      !email ||
+      emailError ||
+      !password ||
+      passwordError ||
+      !confirmPassword ||
+      confirmPasswordError
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    // TODO: Member 1 will implement actual registration logic
     setTimeout(() => setIsLoading(false), 2000);
   };
 
@@ -49,14 +94,16 @@ const RegisterScreen = () => {
             placeholder="Enter your full name"
             value={name}
             onChangeText={setName}
+            icon="person-outline"
           />
           <CustomInput
             label="Email Address"
             placeholder="Enter your email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={validateEmail}
             keyboardType="email-address"
-            error="Please enter a valid email"
+            error={emailError}
+            icon="mail-outline"
           />
           <CustomInput
             label="Phone Number (Optional)"
@@ -64,20 +111,25 @@ const RegisterScreen = () => {
             value={number}
             onChangeText={setNumber}
             keyboardType="phone-pad"
+            icon="call-outline"
           />
           <CustomInput
             label="Password"
             placeholder="Create a strong password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={validatePassword}
             secureTextEntry={true}
+            error={passwordError}
+            icon="lock-closed-outline"
           />
           <CustomInput
             label="Confirm Password"
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={validateConfirmPassword}
             secureTextEntry={true}
+            error={confirmPasswordError}
+            icon="lock-closed-outline"
           />
 
           <View className="flex-row items-center justify-between mt-7 mb-2">
@@ -100,6 +152,7 @@ const RegisterScreen = () => {
             title="Create Individual Account"
             onPress={handlePress}
             loading={loading}
+            disabled={!isChecked}
           />
 
           <Text className="text-lg font-bold mt-4">
