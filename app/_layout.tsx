@@ -1,9 +1,6 @@
 import { LoadingSpinner } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  DefaultTheme,
-  ThemeProvider
-} from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -18,11 +15,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments[0] === "auth";
 
     if (!user && !inAuthGroup) {
       // User not logged in, redirect to auth
-      router.replace("/(auth)/login");
+      router.replace("/auth/login");
     } else if (user && inAuthGroup) {
       // User logged in, redirect to app
       router.replace("/(tabs)");
