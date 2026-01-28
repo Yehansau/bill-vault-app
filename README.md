@@ -1,50 +1,99 @@
-# Welcome to your Expo app 👋
+# BillVault - Smart Bill & Warranty Management
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+AI-powered mobile application for digitizing bills and tracking warranties in Sri Lanka.
 
-## Get started
+## Project Structure
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+bill-vault-app/
+├── frontend/          # React Native mobile app
+├── backend/           # Django REST API
+└── README.md          # This file
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Technology Stack
 
-## Learn more
+### Frontend
 
-To learn more about developing your project with Expo, look at the following resources:
+- React Native
+- Expo
+- React Navigation
+- Axios (API calls)
+- AsyncStorage (local storage)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Backend
 
-## Join the community
+- Django 4.2.7
+- Django REST Framework
+- SQLite (development) / PostgreSQL (production)
+- JWT Authentication
+- Firebase (Storage & Notifications)
 
-Join our community of developers creating universal apps.
+## Getting Started
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+npx expo start
+```
+
+See [frontend/README.md](frontend/README.md) for detailed instructions.
+
+### Backend Setup
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+See [backend/README.md](backend/README.md) for detailed instructions.
+
+## API Endpoints
+
+Base URL: `http://localhost:8000/api`
+
+### Authentication
+
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login user
+- `GET /auth/health` - Health check
+
+### Bills (Coming in Sprint 2)
+
+- `POST /bills/upload` - Upload bill
+- `GET /bills/` - List bills
+- `GET /bills/:id` - Get bill details
+
+## Environment Variables
+
+### Backend (.env)
+
+```
+SECRET_KEY=your-secret-key
+DEBUG=True
+```
+
+### Frontend (.env)
+
+```
+API_BASE_URL=http://192.168.1.5:8000/api
+```
+
+## Contributing
+
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Make changes
+3. Commit: `git commit -m "Description"`
+4. Push: `git push origin feature/your-feature`
+5. Create Pull Request
+
+## License
+
+This project is developed as part of the Software Development Group Project (5COSC021C) at University of Westminster.
