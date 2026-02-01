@@ -1,18 +1,18 @@
-import { LoadingSpinner } from "@/components/ui";
-import { useAuth } from "@/hooks/useAuth";
+//import { LoadingSpinner } from "@/components/ui";
+//import { useAuth } from "@/hooks/useAuth";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+//import { useEffect } from "react";
 import "react-native-reanimated";
 import "./globals.css";
 
 export default function RootLayout() {
-  const { user, loading } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
+  //const { user, loading } = useAuth();
+  //const segments = useSegments();
+  //const router = useRouter();
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (loading) return;
 
     const inAuthGroup = segments[0] === "auth";
@@ -28,7 +28,7 @@ export default function RootLayout() {
 
   if (loading) {
     return <LoadingSpinner />;
-  }
+  }*/
 
   return (
     <ThemeProvider value={DefaultTheme}>
