@@ -1,8 +1,13 @@
+// types/auth.types.ts
 export interface RegisterData {
   email: string;
   password: string;
-  fullName: string;
-  phoneNumber?: string;
+  account_type: "individual" | "business";
+  full_name?: string; // For individual
+  business_name?: string; // For business
+  business_type?: string; // For business
+  business_address?: string; // For business
+  phone_number?: string;
 }
 
 export interface LoginData {
@@ -10,16 +15,22 @@ export interface LoginData {
   password: string;
 }
 
-export interface UserProfile {
-  uid: string;
+export interface AuthResponse {
+  token: string;
+  refresh_token: string;
   email: string;
-  displayName: string;
-  phoneNumber?: string;
-  createdAt: Date;
+  account_type: "individual" | "business";
+  user_id: string;
+  full_name?: string;
+  business_name?: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  user?: any;
-  error?: string;
+export interface UserProfile {
+  user_id: string;
+  email: string;
+  account_type: "individual" | "business";
+  full_name?: string;
+  business_name?: string;
+  phone_number?: string;
+  created_at: string;
 }

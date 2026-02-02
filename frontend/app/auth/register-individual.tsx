@@ -1,4 +1,4 @@
-import profile from "@/assets/images/profile.png";
+import profile from "@/assets/images/icons/profile.png";
 import { CustomButton, CustomInput } from "@/components/ui";
 
 import { Checkbox } from "expo-checkbox";
@@ -65,7 +65,7 @@ const RegisterScreen = () => {
     setIsLoading(true);
     // TODO: Member 1 will implement actual registration logic
     setTimeout(() => setIsLoading(false), 2000);
-    router.push("/(tabs)/explore");
+    router.push("./(tabs)/explore");
   };
 
   return (
@@ -159,7 +159,7 @@ const RegisterScreen = () => {
 
           <Text className="text-lg font-bold mt-4">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-[#9B7EBD] font-semibold">
+            <Link href="./auth/login" className="text-[#9B7EBD] font-semibold">
               Sign in
             </Link>
           </Text>

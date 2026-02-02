@@ -3,14 +3,15 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Get credentials from environment variables (secure!)
 const firebaseConfig = {
-  apiKey: "AIzaSyDB7z_lzumvYbSiJ165Pay6iBwDs1Bm-oU",
-  authDomain: "bill-vault-dc594.firebaseapp.com",
-  projectId: "bill-vault-dc594",
-  storageBucket: "bill-vault-dc594.firebasestorage.app",
-  messagingSenderId: "354567306002",
-  appId: "1:354567306002:web:6e87f52140052e3bd0d1cb",
-  measurementId: "G-5WC5PM7GNN",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase

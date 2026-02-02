@@ -2,11 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/services/*": ["./services/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/types/*": ["./types/*"]
     }
   },
   "include": [

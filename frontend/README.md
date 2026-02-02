@@ -49,3 +49,15 @@ frontend/
 - `npm test` - Run tests
 - `npm run lint` - Check code quality
   xyv-ypvk-nox
+
+## Environment Setup
+
+1. Copy `.env.example` to `.env`:
+
+```bash
+   cp .env.example .env
+```
+
+2. Fill in the actual values in `.env`
+
+3. **NEVER commit `.env`** - it's gitignored for security
