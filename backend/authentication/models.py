@@ -3,41 +3,68 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, full_name, password=None, phone_number=None):
+    def create_user(self, email, account_type, password=None, **extra_fields):
+        """
+        Create and save a user with the given email and account type.
+        Extra fields can include: full_name, phone_number, business_name, etc.
+        """
         if not email:
             raise ValueError("Email is required")
+        if not account_type:
+            raise ValueError("Account type is required")
 
         user = self.model(
             email=self.normalize_email(email),
-            full_name=full_name,
-            phone_number=phone_number,
+            account_type=account_type,
+            **extra_fields
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, full_name, password):
-        user = self.create_user(email, full_name, password)
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self._db)
-        return user
+    def create_superuser(self, email, password, **extra_fields):
+        """
+        Create and save a superuser with the given email and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('account_type', 'individual')
+        
+        return self.create_user(email, 'individual', password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    # Common fields
     email = models.EmailField(unique=True)
-    full_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    account_type = models.CharField(
+        max_length=20,
+        choices=[('individual', 'Individual'), ('business', 'Business')]
+    )
+    phone_number = models.CharField(max_length=15, blank=True)
+    
+    # Individual account fields
+    full_name = models.CharField(max_length=255, blank=True)
+    
+    # Business account fields
+    business_name = models.CharField(max_length=255, blank=True)
+    business_type = models.CharField(max_length=100, blank=True)
+    business_address = models.TextField(blank=True)
 
+    # System fields
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["full_name"]
+    REQUIRED_FIELDS = []  # Only email is required for createsuperuser
 
     def __str__(self):
-        return self.email
+        if self.account_type == 'business':
+            return f"{self.business_name} ({self.email})"
+        return f"{self.full_name} ({self.email})" if self.full_name else self.email
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
