@@ -1,19 +1,27 @@
 import { CustomButton } from "@/components/ui";
+import AuthHeader from "@/components/AuthHeader"
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Image ,Alert} from "react-native";
 import logo from "../../assets/images/LogoPicture.png";
+import BackButton from "@/components/ui/BackButton";
 
 const AccountTypeScreen = () => {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Image source={logo} style={styles.logo} />
-        <Text style={styles.title}>Choose Account Type</Text>
-        <Text style={styles.subtitle}>
-          Select how you'll be using BillVault
-        </Text>
-      </View>
+    <ScrollView style={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}>
+
+      {/* Back Arrow */}
+      <BackButton/>
+
+      {/* Header */}
+      <AuthHeader
+        logo={logo}
+        title="Choose Account Type"
+        subtitle="How will you use BillVault?"
+      />
+
 
       {/* Individual Card */}
       <TouchableOpacity
@@ -25,19 +33,12 @@ const AccountTypeScreen = () => {
         </View>
         <Text style={styles.cardTitle}>Individual</Text>
         <Text style={styles.cardSubtitle}>For personal bill management</Text>
-
-        <View style={styles.features}>
-          <Text style={styles.feature}>• OCR Scanning</Text>
-          <Text style={styles.feature}>• Smart Categories</Text>
-          <Text style={styles.feature}>• Warranty Tracking</Text>
-          <Text style={styles.feature}>• Digital Backup</Text>
-        </View>
       </TouchableOpacity>
 
       {/* Business Card */}
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push("./register-business")}
+        onPress={() => Alert.alert('OOPS !', 'This feature is coming soon.')}
       >
         <View style={[styles.cardIcon, { backgroundColor: "#4CAF50" }]}>
           <Text style={styles.iconText}>💼</Text>
@@ -46,25 +47,10 @@ const AccountTypeScreen = () => {
         <Text style={styles.cardSubtitle}>
           For invoice & expense management
         </Text>
-
-        <View style={styles.features}>
-          <Text style={styles.feature}>• QR Code Processing</Text>
-          <Text style={styles.feature}>• Customer Tracking</Text>
-          <Text style={styles.feature}>• Expense Dashboard</Text>
-          <Text style={styles.feature}>• Team Collaboration</Text>
-        </View>
       </TouchableOpacity>
 
-      <Text style={styles.signinText}>
-        Already have an account?{" "}
-        <Text
-          style={styles.signinLink}
-          onPress={() => router.push("./auth/login")}
-        >
-          Sign in
-        </Text>
-      </Text>
-    </View>
+      
+    </ScrollView>
   );
 };
 
