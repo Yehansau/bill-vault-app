@@ -1,6 +1,9 @@
+import { CustomButton } from "@/components/ui";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Background } from "@react-navigation/elements";
+
 
 export default function RegistrationSuccessScreen() {
   const handleContinue = () => {
@@ -24,9 +27,15 @@ export default function RegistrationSuccessScreen() {
       </Text>
 
       {/* Continue Button */}
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Continue to Login</Text>
-      </TouchableOpacity>
+      <CustomButton
+        title="Continue to Login"
+        onPress={handleContinue}
+        gradientColors={["#944ABC", "#3B0856"] as const}
+        variant="primary"
+        style={{ borderRadius: 30, width: "70%", alignSelf: "center", marginBottom: 40}}
+        innerStyle={{ borderRadius: 30 }}
+        textStyle={{ fontSize: 18, color: "#FFFFFF"}}
+      />
     </View>
   );
 }
@@ -62,18 +71,5 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: "center",
     lineHeight: 24,
-  },
-  button: {
-    backgroundColor: "#6C63FF",
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 25,
-    minWidth: 250,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });

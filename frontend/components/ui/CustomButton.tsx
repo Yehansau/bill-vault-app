@@ -13,6 +13,10 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   variant?: "primary" | "secondary";
+  gradientColors?: readonly [string, string];
+  style?: any; 
+  innerStyle?: any; // 👈 optional (for gradient/view container)
+  textStyle?: any; // 👈 optional (for text)
 }
 
 export default function CustomButton({
@@ -21,6 +25,10 @@ export default function CustomButton({
   loading = false,
   disabled = false,
   variant = "primary",
+  gradientColors,
+  style,
+  innerStyle,
+  textStyle,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const isPrimaryAndDisabled = variant === "primary" && isDisabled;
@@ -30,19 +38,27 @@ export default function CustomButton({
     isPrimaryAndDisabled && styles.buttonDisabledPrimaryWrapper,
     variant === "secondary" && styles.buttonSecondary,
     variant === "secondary" && isDisabled && styles.buttonSecondaryDisabled,
+    style,
   ];
 
-  const innerContainerStyles = [styles.innerGradientContainer];
+  const innerContainerStyles = [
+    styles.innerGradientContainer,
+    innerStyle,
+  ];
 
   const textStyles = [
     styles.buttonText,
     variant === "secondary" && styles.buttonTextSecondary,
     isDisabled && styles.buttonTextDisabled,
+    textStyle,
   ];
 
-  const primaryGradientColors: readonly [string, string] = isPrimaryAndDisabled
+  const defaultGradient: readonly [string, string] = ["#3B1E54", "#8342BA"];
+
+const primaryGradientColors: readonly [string, string] =
+  isPrimaryAndDisabled
     ? ["#FFFFFF", "#FFFFFF"]
-    : ["#3B1E54", "#8342BA"];
+    : gradientColors ?? defaultGradient;
 
   // Conditionally render LinearGradient or View
   if (variant === "primary") {
@@ -92,10 +108,7 @@ const styles = StyleSheet.create({
   button: {
   borderRadius: 20,
   width: "100%",
-  minHeight: 60,              // 🔼 slightly bigger
-  alignItems: "center",       // ✅ REQUIRED
-  justifyContent: "center",   // ✅ REQUIRED
-  overflow: "hidden",
+  minHeight: 60,
 },
 
 buttonText: {
@@ -106,18 +119,14 @@ buttonText: {
   textAlign: "center",
 },
 
-  /*button: {
-    borderRadius: 20,
-    padding: 0,
-    width: "100%",
-    minHeight: 50,
-    overflow: "hidden",
-  },*/
   innerGradientContainer: {
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: "center",
     justifyContent: "center",
-    flex: 1,
+    width: "100%",
+    overflow: "hidden",
+    borderRadius: 20,
   },
   buttonDisabledPrimaryWrapper: {
     borderWidth: 2,
@@ -132,12 +141,6 @@ buttonText: {
     backgroundColor: "#FFFFFF",
     borderColor: "#B5A7D8",
   },
-
-  /*buttonText: {
-    color: "#FFF",
-    fontSize: 20,
-    fontWeight: "600",
-  },*/
 
   buttonTextSecondary: {
     color: "#000000",

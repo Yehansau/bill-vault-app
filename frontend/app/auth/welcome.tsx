@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import billVaultImage from "../../assets/images/BillVaultImage.png";
+
 import logo from "../../assets/images/LogoPicture.png";
 
 const WelcomeScreen = () => {
@@ -24,7 +24,8 @@ const WelcomeScreen = () => {
     >
       <View style={styles.imageContainer}>
         <Image source={logo} style={styles.logo} />
-        <Image source={billVaultImage} style={styles.billVaultImage} />
+        <Text style={styles.title}>BILLVAULT</Text>
+        <Text style={styles.subtitle}>NEVER LOSE A BILL AGAIN</Text>
       </View>
 
       <View style={styles.ButtonContainer}>
@@ -38,6 +39,7 @@ const WelcomeScreen = () => {
           variant="secondary"
         />
       </View>
+      
     </LinearGradient>
   );
 };
@@ -49,8 +51,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    height: 130,
-    width: 130,
+    height: 100,
+    width: 100,
     marginTop: 100,
   },
 
@@ -65,9 +67,10 @@ const styles = StyleSheet.create({
   },
 
   welcomeText: {
-    fontSize: 55,
+    fontSize: 45,
     color: "white",
-    marginBottom: 20,
+    marginBottom: 200,
+    marginTop: 50,
   },
 
   imageContainer: {
@@ -86,6 +89,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
   },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "white",
+    textAlign: "center",
+  },
+
 });
 
 export default WelcomeScreen;
