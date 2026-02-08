@@ -3,10 +3,9 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, account_type, password=None, **extra_fields):
+    def create_user(self, email, password=None, *, account_type=None, **extra_fields):
         """
         Create and save a user with the given email and account type.
-        Extra fields can include: full_name, phone_number, business_name, etc.
         """
         if not email:
             raise ValueError("Email is required")
@@ -22,15 +21,16 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         """
         Create and save a superuser with the given email and password.
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        # Pass account_type via extra_fields
         extra_fields.setdefault('account_type', 'individual')
-        
-        return self.create_user(email, 'individual', password, **extra_fields)
+
+        return self.create_user(email=email, password=password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

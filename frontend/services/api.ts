@@ -4,7 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL = "http://192.168.1.5:8000/api"; // CHANGE THIS!
+const API_BASE_URL =
+  "https://pyrenocarpous-alkalimetrically-dominik.ngrok-free.dev/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -38,6 +39,8 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem("token");
+    } else {
+      alert(`Server error: ${error.response.status}`);
     }
     return Promise.reject(error);
   },
@@ -47,7 +50,8 @@ export default api;
 
 // API functions
 export const authAPI = {
-  register: (data: any) => api.post("/auth/register", data),
+  register: (data: any, p0: { headers: { Authorization: undefined } }) =>
+    api.post("/auth/register", data),
   login: (data: any) => api.post("/auth/login", data),
   verifyToken: () => api.get("/auth/verify"),
 };

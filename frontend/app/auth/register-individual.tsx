@@ -4,7 +4,16 @@ import { CustomButton, CustomInput } from "@/components/ui";
 import { Checkbox } from "expo-checkbox";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
+import { authAPI } from "@/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RegisterScreen = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -48,8 +57,8 @@ const RegisterScreen = () => {
     }
   };
 
-  const handlePress = () => {
-    // Validate all fields before submitting
+  const handlePress = async () => {
+    // 1️⃣ Local validation before sending to backend
     if (
       !name ||
       !email ||
@@ -57,15 +66,55 @@ const RegisterScreen = () => {
       !password ||
       passwordError ||
       !confirmPassword ||
-      confirmPasswordError
+      confirmPasswordError ||
+      !isChecked
     ) {
+      Alert.alert("Error", "Please fix all errors and agree to the terms");
       return;
     }
 
     setIsLoading(true);
-    // TODO: Member 1 will implement actual registration logic
-    setTimeout(() => setIsLoading(false), 2000);
-    router.push("./(tabs)/explore");
+
+    try {
+      // 2️⃣ Prepare payload matching backend field names
+      const payload = {
+        name, // full_name for individual
+        email,
+        password,
+        confirmPassword,
+        accountType: "individual", // or "business"
+        number, // optional
+        agreeTerms: isChecked,
+      };
+
+      // 3️⃣ Call API without Authorization header
+      const response = await authAPI.register(payload, {
+        headers: { Authorization: undefined },
+      });
+
+      // 4️⃣ Save token if your backend returns one (optional)
+      if (response.data?.token) {
+        await AsyncStorage.setItem("token", response.data.token);
+      }
+
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/auth/registration-success"); // navigate on success
+    } catch (error: any) {
+      // 5️⃣ Handle backend validation errors
+      if (error.response?.status === 400) {
+        const errors = error.response.data;
+        // Show first error as alert (you can also map to specific input)
+        const firstError = Object.values(errors)[0];
+        Alert.alert("Error", firstError as string);
+      } else if (error.response?.status === 401) {
+        Alert.alert("Unauthorized", "Invalid request");
+      } else {
+        Alert.alert("Error", "Server error. Please try again.");
+        console.log(error.response);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

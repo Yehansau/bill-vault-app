@@ -10,7 +10,7 @@ export default function ProfileScreen() {
       await AsyncStorage.removeItem("user_email");
 
       // Navigate to welcome screen
-      router.replace("./auth/welcome");
+      router.replace("/auth/welcome");
     } catch (error) {
       console.error("Logout error:", error);
     }
