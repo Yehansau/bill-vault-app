@@ -4,10 +4,9 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Background } from "@react-navigation/elements";
 
-
 export default function RegistrationSuccessScreen() {
   const handleContinue = () => {
-    router.replace("/auth/login");
+    router.replace("/(tabs)");
   };
 
   return (
@@ -22,19 +21,22 @@ export default function RegistrationSuccessScreen() {
       <Text style={styles.subtitle}>
         Your account has been created successfully.
       </Text>
-      <Text style={styles.message}>
-        Please login to start managing your bills.
-      </Text>
+      <Text style={styles.message}>Click to start managing bills.</Text>
 
       {/* Continue Button */}
       <CustomButton
-        title="Continue to Login"
+        title="Continue to Home"
         onPress={handleContinue}
         gradientColors={["#944ABC", "#3B0856"] as const}
         variant="primary"
-        style={{ borderRadius: 30, width: "70%", alignSelf: "center", marginBottom: 40}}
+        style={{
+          borderRadius: 30,
+          width: "70%",
+          alignSelf: "center",
+          marginBottom: 40,
+        }}
         innerStyle={{ borderRadius: 30 }}
-        textStyle={{ fontSize: 18, color: "#FFFFFF"}}
+        textStyle={{ fontSize: 18, color: "#FFFFFF" }}
       />
     </View>
   );
