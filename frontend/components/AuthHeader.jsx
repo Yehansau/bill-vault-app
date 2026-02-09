@@ -1,11 +1,10 @@
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
-const AuthHeader = ({ logo, title, subtitle }) => {
+const AuthHeader = ({ title, subtitle }) => {
     return (
         <View style={styles.container}>
-            <Image source={logo} style={styles.logo} />
 
             <Text style={styles.title}>{title}</Text>
 
@@ -51,7 +50,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     title: {
-        fontSize: 24,
+        fontSize: 30,
         fontWeight: "700",
         color: "#111827",
         textAlign: "center",
