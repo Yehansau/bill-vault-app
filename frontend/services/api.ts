@@ -1,0 +1,78 @@
+// Backend API calls
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// IMPORTANT: Change this to YOUR computer's IP address
+// Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
+const API_BASE_URL = "http://10.171.20.21:8000/api";
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
+  timeout: 10000,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("Error reading token:", error);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Handle response errors
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // No response → network issue
+    if (!error.response) {
+      alert("Network error. Please check your connection.");
+      console.error("Network error:", error);
+      return;
+    }
+
+    const status = error.response.status;
+    const data = error.response.data;
+
+    if (status === 401 || status === 400) {
+      // Expected auth errors
+      console.warn("Auth error:", data);
+      // Alert should be shown in screen logic OR here (pick one)
+      return;
+    }
+
+    // Unexpected server errors
+    alert("Something went wrong. Please try again.");
+    console.error("Server error:", error);
+    return;
+  },
+);
+
+export default api;
+
+// API functions
+export const authAPI = {
+  register: (data: any, p0: { headers: { Authorization: undefined } }) =>
+    api.post("/auth/register", data),
+  login: (data: any) => api.post("/auth/login", data),
+  verifyToken: () => api.get("/auth/verify"),
+};
+
+export const billsAPI = {
+  upload: (data: any) => api.post("/bills/upload", data),
+  list: () => api.get("/bills/"),
+  detail: (id: string) => api.get(`/bills/${id}`),
+};

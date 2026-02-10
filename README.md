@@ -2,9 +2,8 @@
 
 AI-powered mobile application for digitizing bills and tracking warranties in Sri Lanka.
 
-
-
 ## Project Structure
+
 ```
 bill-vault-app/
 ├── frontend/          # React Native mobile app
@@ -15,6 +14,7 @@ bill-vault-app/
 ## Technology Stack
 
 ### Frontend
+
 - React Native
 - Expo
 - React Navigation
@@ -22,6 +22,7 @@ bill-vault-app/
 - AsyncStorage (local storage)
 
 ### Backend
+
 - Django 4.2.7
 - Django REST Framework
 - SQLite (development) / PostgreSQL (production)
@@ -31,6 +32,7 @@ bill-vault-app/
 ## Getting Started
 
 ### Frontend Setup
+
 ```bash
 cd frontend
 npm install
@@ -40,6 +42,7 @@ npx expo start
 See [frontend/README.md](frontend/README.md) for detailed instructions.
 
 ### Backend Setup
+
 ```bash
 cd backend
 python -m venv venv
@@ -52,17 +55,18 @@ python manage.py runserver
 
 See [backend/README.md](backend/README.md) for detailed instructions.
 
-
 ## API Endpoints
 
 Base URL: `http://localhost:8000/api`
 
 ### Authentication
+
 - `POST /auth/register` - Register new user
 - `POST /auth/login` - Login user
 - `GET /auth/health` - Health check
 
 ### Bills (Coming in Sprint 2)
+
 - `POST /bills/upload` - Upload bill
 - `GET /bills/` - List bills
 - `GET /bills/:id` - Get bill details
@@ -70,12 +74,14 @@ Base URL: `http://localhost:8000/api`
 ## Environment Variables
 
 ### Backend (.env)
+
 ```
 SECRET_KEY=your-secret-key
 DEBUG=True
 ```
 
 ### Frontend (.env)
+
 ```
 API_BASE_URL=http://192.168.1.5:8000/api
 ```
