@@ -43,10 +43,7 @@ const LoginScreen = () => {
 
       router.push("/(tabs)");
     } catch (error: any) {
-      console.error(error);
-
-      const message =
-        error.response?.data?.message || "Invalid email or password";
+      const message = "Invalid email or password";
 
       Alert.alert("Login Failed", message);
     } finally {

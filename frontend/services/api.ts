@@ -4,13 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL =
-  "https://pyrenocarpous-alkalimetrically-dominik.ngrok-free.dev/api";
+const API_BASE_URL = "http://10.171.20.21:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
   },
   timeout: 10000,
 });
@@ -37,12 +37,27 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      await AsyncStorage.removeItem("token");
-    } else {
-      alert(`Server error: ${error.response.status}`);
+    // No response → network issue
+    if (!error.response) {
+      alert("Network error. Please check your connection.");
+      console.error("Network error:", error);
+      return;
     }
-    return Promise.reject(error);
+
+    const status = error.response.status;
+    const data = error.response.data;
+
+    if (status === 401 || status === 400) {
+      // Expected auth errors
+      console.warn("Auth error:", data);
+      // Alert should be shown in screen logic OR here (pick one)
+      return;
+    }
+
+    // Unexpected server errors
+    alert("Something went wrong. Please try again.");
+    console.error("Server error:", error);
+    return;
   },
 );
 
