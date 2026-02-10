@@ -1,55 +1,93 @@
-
-import AuthHeader from "@/components/AuthHeader"
+import AuthHeader from "@/components/AuthHeader";
 import { router } from "expo-router";
 import React from "react";
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Image ,Alert} from "react-native";
-import logo from "../../assets/images/LogoPicture.png";
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import BackButton from "@/components/ui/BackButton";
+import { Ionicons } from "@expo/vector-icons";
+
+const FeatureItem = ({ text }: { text: string }) => (
+  <View style={styles.featureItem}>
+    <Ionicons name="checkmark-done-sharp" size={16} color="#22C55E" />
+    <Text style={styles.featureText}>{text}</Text>
+  </View>
+);
 
 const AccountTypeScreen = () => {
   return (
-    <ScrollView style={styles.container}
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={{ paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}>
+      showsVerticalScrollIndicator={false}
+    >
+      <BackButton title="Create Account" />
 
-      {/* Back Arrow */}
-      <BackButton/>
-
-      {/* Header */}
       <AuthHeader
-        logo={logo}
         title="Choose Account Type"
-        subtitle="How will you use BillVault?"
+        subtitle="Select how you'll be using BillVault"
       />
-
 
       {/* Individual Card */}
       <TouchableOpacity
         style={styles.card}
         onPress={() => router.push("./register-individual")}
       >
-        <View style={styles.cardIcon}>
-          <Text style={styles.iconText}>👤</Text>
+        <View style={styles.rowTop}>
+          <View style={[styles.iconCircle, { backgroundColor: "#E9D5FF" }]}>
+            <Ionicons name="person-outline" size={28} color="#7C3AED" />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Individual</Text>
+            <Text style={styles.cardSubtitle}>
+              Personal bill management
+            </Text>
+          </View>
+
+          <Ionicons name="chevron-forward-outline" size={22} color="#999" />
         </View>
-        <Text style={styles.cardTitle}>Individual</Text>
-        <Text style={styles.cardSubtitle}>For personal bill management</Text>
+
+        <View style={styles.featuresGrid}>
+          <FeatureItem text="OCR Scanning" />
+          <FeatureItem text="Smart Categories" />
+          <FeatureItem text="Warranty Tracking" />
+          <FeatureItem text="Digital Returns" />
+        </View>
       </TouchableOpacity>
 
       {/* Business Card */}
       <TouchableOpacity
         style={styles.card}
-        onPress={() => Alert.alert('OOPS !', 'This feature is coming soon.')}
+        onPress={() => Alert.alert("OOPS !", "This feature is coming soon.")}
       >
-        <View style={[styles.cardIcon, { backgroundColor: "#4CAF50" }]}>
-          <Text style={styles.iconText}>💼</Text>
-        </View>
-        <Text style={styles.cardTitle}>Business</Text>
-        <Text style={styles.cardSubtitle}>
-          For invoice & expense management
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.rowTop}>
+          <View style={[styles.iconCircle, { backgroundColor: "#D1FAE5" }]}>
+            <Ionicons name="business-outline" size={28} color="#059669" />
+          </View>
 
-      
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Business</Text>
+            <Text style={styles.cardSubtitle}>
+              For companies & retailers
+            </Text>
+          </View>
+
+          <Ionicons name="chevron-forward-outline" size={22} color="#999" />
+        </View>
+
+        <View style={styles.featuresGrid}>
+          <FeatureItem text="Team Collaboration" />
+          <FeatureItem text="Customer Sharing" />
+          <FeatureItem text="Bulk Processing" />
+          <FeatureItem text="Analytics Dashboard" />
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -58,79 +96,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
-    padding: 20,
+    paddingHorizontal: 20,
   },
-  header: {
-    marginTop: 40,
-    marginBottom: 30,
-    alignItems: "center",
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#757575",
-    textAlign: "center",
-  },
+
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 18,
+    maxHeight: 220,
     marginBottom: 20,
-    borderWidth: 2,
-    borderColor: "#E0E0E0",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  cardIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#6C63FF",
+
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginRight: 14,
   },
-  iconText: {
-    fontSize: 30,
-  },
+
   cardTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111",
   },
+
   cardSubtitle: {
-    fontSize: 14,
-    color: "#757575",
-    marginBottom: 16,
+    fontSize: 13,
+    color: "#777",
+    marginTop: 2,
   },
-  features: {
-    marginTop: 8,
-  },
-  feature: {
-    fontSize: 14,
-    color: "#000000",
-    marginBottom: 6,
-  },
-  signinText: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "#757575",
+
+  featuresGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginTop: 10,
   },
-  signinLink: {
-    color: "#6C63FF",
-    fontWeight: "600",
+
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "48%",
+    marginBottom: 10,
+  },
+
+  featureText: {
+    marginLeft: 6,
+    fontSize: 13,
+    color: "#444",
   },
 });
+
 
 export default AccountTypeScreen;

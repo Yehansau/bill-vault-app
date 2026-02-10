@@ -3,17 +3,27 @@ import { CustomButton, CustomInput } from "@/components/ui";
 
 import { Checkbox } from "expo-checkbox";
 import { Link, router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
   Alert,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { authAPI } from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const COLORS = {
+  primary: "#3B1E54",
+  secondary: "#9B7EBD",
+  accent: "#D4BEE4",
+  background: "#EEEEEE",
+};
 
 const RegisterScreen = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -24,41 +34,71 @@ const RegisterScreen = () => {
   const [number, setNumber] = useState("");
   const [loading, setIsLoading] = useState(false);
 
-  // Add validation states
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
+  const focusAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleFocus = () => {
+    Animated.spring(focusAnim, {
+      toValue: 1.02,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    Animated.spring(focusAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const validateEmail = (text: string) => {
     setEmail(text);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (text && !emailRegex.test(text)) {
-      setEmailError("Please enter a valid email");
-    } else {
-      setEmailError("");
-    }
+    setEmailError(
+      text && !emailRegex.test(text) ? "Enter a valid email address" : ""
+    );
   };
 
   const validatePassword = (text: string) => {
     setPassword(text);
-    if (text && text.length < 8) {
-      setPasswordError("Password must be at least 8 characters");
-    } else {
-      setPasswordError("");
-    }
+    const strongRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$/;
+
+    setPasswordError(
+      !strongRegex.test(text)
+        ? "12+ characters (14+ recommended) with upper, lower, number & symbol"
+        : ""
+    );
   };
 
   const validateConfirmPassword = (text: string) => {
     setConfirmPassword(text);
-    if (text && text !== password) {
-      setConfirmPasswordError("Passwords do not match");
-    } else {
-      setConfirmPasswordError("");
-    }
+    setConfirmPasswordError(
+      text && text !== password ? "Passwords do not match" : ""
+    );
   };
 
   const handlePress = async () => {
-    // 1️⃣ Local validation before sending to backend
     if (
       !name ||
       !email ||
@@ -69,152 +109,178 @@ const RegisterScreen = () => {
       confirmPasswordError ||
       !isChecked
     ) {
-      Alert.alert("Error", "Please fix all errors and agree to the terms");
+      Alert.alert("Fix required", "Please complete the form correctly");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // 2️⃣ Prepare payload matching backend field names
       const payload = {
-        name, // full_name for individual
+        name,
         email,
         password,
         confirmPassword,
-        accountType: "individual", // or "business"
-        number, // optional
+        accountType: "individual",
+        number,
         agreeTerms: isChecked,
       };
 
-      // 3️⃣ Call API without Authorization header
       const response = await authAPI.register(payload, {
         headers: { Authorization: undefined },
       });
 
-      // 4️⃣ Save token if your backend returns one (optional)
       if (response.data?.token) {
         await AsyncStorage.setItem("token", response.data.token);
       }
 
-      Alert.alert("Success", "Account created successfully!");
-      router.push("/auth/registration-success"); // navigate on success
-    } catch (error: any) {
-      // 5️⃣ Handle backend validation errors
-      if (error.response?.status === 400) {
-        const errors = error.response.data;
-        // Show first error as alert (you can also map to specific input)
-        const firstError = Object.values(errors)[0];
-        Alert.alert("Error", firstError as string);
-      } else if (error.response?.status === 401) {
-        Alert.alert("Unauthorized", "Invalid request");
-      } else {
-        Alert.alert("Error", "Server error. Please try again.");
-        console.log(error.response);
-      }
+      Alert.alert("Success 🎉", "Your account has been created");
+      router.push("/auth/registration-success");
+    } catch {
+      Alert.alert("Error", "Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View className="bg-white flex-1">
-      <View className="items-center mt-5">
-        <View className="rounded-xl size-14 bg-[#8B5AA4] relative justify-center items-center shadow-lg shadow-black">
-          <Image source={profile} className="size-10" />
-        </View>
-        <Text className="text-2xl text-center font-bold mt-5">
-          Create Your Account
-        </Text>
-        <Text className="text-lg text-center text-gray-500 mt-5">
-          Start managing your bills smarter
-        </Text>
-      </View>
-
-      <ScrollView
-        className="flex-1"
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          minHeight: "100%",
-          paddingBottom: 10,
-        }}
+    <LinearGradient
+      colors={[COLORS.accent, COLORS.background]}
+      style={{ flex: 1 }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
-        <View className="flex-col items-start mt-5 px-5">
-          <CustomInput
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={name}
-            onChangeText={setName}
-            icon="person-outline"
-          />
-          <CustomInput
-            label="Email Address"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={validateEmail}
-            keyboardType="email-address"
-            error={emailError}
-            icon="mail-outline"
-          />
-          <CustomInput
-            label="Phone Number (Optional)"
-            placeholder="Enter your phone number"
-            value={number}
-            onChangeText={setNumber}
-            keyboardType="phone-pad"
-            icon="call-outline"
-          />
-          <CustomInput
-            label="Password"
-            placeholder="Create a strong password"
-            value={password}
-            onChangeText={validatePassword}
-            secureTextEntry={true}
-            error={passwordError}
-            icon="lock-closed-outline"
-          />
-          <CustomInput
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChangeText={validateConfirmPassword}
-            secureTextEntry={true}
-            error={confirmPasswordError}
-            icon="lock-closed-outline"
-          />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            }}
+          >
+            {/* Header */}
+            <View className="items-center mt-10">
+              <View
+                style={{ backgroundColor: COLORS.primary }}
+                className="rounded-3xl size-16 justify-center items-center shadow-xl"
+              >
+                <Image source={profile} className="size-10" />
+              </View>
 
-          <View className="flex-row items-center justify-between mt-7 mb-2">
-            <TouchableOpacity>
-              <Checkbox
-                value={isChecked}
-                onValueChange={setIsChecked}
-                color={isChecked ? "#8B5AA4" : undefined}
+              <Text
+                style={{ color: COLORS.primary }}
+                className="text-3xl font-extrabold mt-5 tracking-wide"
+              >
+                Create Account
+              </Text>
+
+              <Text
+                style={{ color: COLORS.secondary }}
+                className="text-base mt-2"
+              >
+                Smart bill tracking starts here
+              </Text>
+            </View>
+
+            {/* Form Card */}
+            <View className="mx-5 mt-7 relative">
+              <View
+                style={{ backgroundColor: COLORS.accent }}
+                className="absolute -top-3 -left-3 -right-3 h-20 rounded-[30px] opacity-60"
               />
-            </TouchableOpacity>
 
-            <Text className="flex-1 text-lg font-semibold text-gray-400 ml-5">
-              I agree to the Terms of Service and Privacy Policy
-            </Text>
-          </View>
-        </View>
+              <View className="bg-white p-6 rounded-[28px] shadow-lg">
+                <Animated.View style={{ transform: [{ scale: focusAnim }] }}>
+                  <CustomInput
+                    label="Full Name"
+                    value={name}
+                    onChangeText={setName}
+                    icon="person-outline"
+                  />
 
-        <View className="items-center mt-5 px-5">
-          <CustomButton
-            title="Create Individual Account"
-            onPress={handlePress}
-            loading={loading}
-            disabled={!isChecked}
-          />
+                  <CustomInput
+                    label="Email Address"
+                    value={email}
+                    onChangeText={validateEmail}
+                    error={emailError}
+                    icon="mail-outline"
+                  />
 
-          <Text className="text-lg font-bold mt-4">
-            Already have an account?{" "}
-            <Link href="./auth/login" className="text-[#9B7EBD] font-semibold">
-              Sign in
-            </Link>
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+                  <CustomInput
+                    label="Phone Number (Optional)"
+                    value={number}
+                    onChangeText={setNumber}
+                    icon="call-outline"
+                  />
+
+                  <CustomInput
+                    label="Password"
+                    value={password}
+                    onChangeText={validatePassword}
+                    secureTextEntry
+                    error={passwordError}
+                    icon="lock-closed-outline"
+                  />
+
+                  <CustomInput
+                    label="Confirm Password"
+                    value={confirmPassword}
+                    onChangeText={validateConfirmPassword}
+                    secureTextEntry
+                    error={confirmPasswordError}
+                    icon="lock-closed-outline"
+                  />
+                </Animated.View>
+
+                {/* Terms */}
+                <View className="flex-row items-center mt-5">
+                  <Checkbox
+                    value={isChecked}
+                    onValueChange={setIsChecked}
+                    color={isChecked ? COLORS.primary : undefined}
+                  />
+                  <Text className="ml-3 text-sm text-gray-500">
+                    I agree to the Terms & Privacy Policy
+                  </Text>
+                </View>
+
+                <View className="mt-6">
+                  <CustomButton
+                    title="Create Individual Account"
+                    onPress={handlePress}
+                    loading={loading}
+                    disabled={!isChecked}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Footer */}
+            <View className="mt-5 mb-2">
+              <Text className="text-center text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link
+                  href="./auth/login"
+                  style={{
+                    color: COLORS.secondary,
+                    fontWeight: "700",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Sign in
+                </Link>
+              </Text>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
