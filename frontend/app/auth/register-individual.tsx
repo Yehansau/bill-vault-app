@@ -82,11 +82,11 @@ const RegisterScreen = () => {
   const validatePassword = (text: string) => {
     setPassword(text);
     const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
     setPasswordError(
       !strongRegex.test(text)
-        ? "12+ characters (14+ recommended) with upper, lower, number & symbol"
+        ? "8+ characters with upper, lower, number & symbol"
         : ""
     );
   };
@@ -156,12 +156,16 @@ const RegisterScreen = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ 
+            paddingBottom: 60,
+            flexGrow: 1 
+          }}
         >
           <Animated.View
             style={{
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
+              flex: 1,
             }}
           >
             {/* Header */}
@@ -245,7 +249,7 @@ const RegisterScreen = () => {
                     onValueChange={setIsChecked}
                     color={isChecked ? COLORS.primary : undefined}
                   />
-                  <Text className="ml-3 text-sm text-gray-500">
+                  <Text className="ml-3 text-sm text-gray-500 flex-1">
                     I agree to the Terms & Privacy Policy
                   </Text>
                 </View>
@@ -256,13 +260,19 @@ const RegisterScreen = () => {
                     onPress={handlePress}
                     loading={loading}
                     disabled={!isChecked}
+                    style={{ minHeight: 50 }}
+                    textStyle={{ 
+                      numberOfLines: 1,
+                      adjustsFontSizeToFit: true,
+                      flexShrink: 1
+                    }}
                   />
                 </View>
               </View>
             </View>
 
-            {/* Footer */}
-            <View className="mt-5 mb-2">
+            {/* Footer - Fixed positioning */}
+            <View className="mt-6 px-5 pb-4">
               <Text className="text-center text-sm text-gray-600">
                 Already have an account?{" "}
                 <Link
