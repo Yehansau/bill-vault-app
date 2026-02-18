@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 
 import logo from "../assets/images/LogoPicture.png";
+import logo1 from "../assets/images/Mask group.png";
 
 export default function SplashScreen() {
   useEffect(() => {
@@ -34,16 +35,16 @@ export default function SplashScreen() {
   };
 
   return (
-    <LinearGradient colors={["#8E44AD", "#4A0D66"]} style={styles.container}>
+    <LinearGradient colors={["#944ABC", "#3B0856"]} style={styles.container}>
       <StatusBar barStyle="light-content" />
 
       {/* Logo background */}
+
       <View style={styles.logoBox}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
       </View>
 
-      {/* App name */}
-      <Text style={styles.title}>BILLVAULT</Text>
+      <Image source={logo1} style={styles.logo1} resizeMode="contain" />
 
       {/* Tagline */}
       <Text style={styles.subtitle}>NEVER LOSE A BILL AGAIN</Text>
@@ -65,22 +66,20 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.15)",
+
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBlock: -70,
   },
 
   logo: {
-    width: 90,
-    height: 90,
+    width: 100,
+    height: 100,
   },
 
-  title: {
-    fontSize: 34,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: 2,
+  logo1: {
+    width: 300,
+    height: 300,
   },
 
   subtitle: {
