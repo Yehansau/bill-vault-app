@@ -12,6 +12,7 @@ expo-env.d.ts
 .env.development
 .env.production
 !.env.example
+venv/
 
 # ============================================
 # Node.js
