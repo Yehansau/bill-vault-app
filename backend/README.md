@@ -4,46 +4,43 @@ Django REST API for BillVault mobile application.
 
 ## Setup
 
-1. Create virtual environment:
-
-```bash
+# 1. Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Mac/Linux
-venv\Scripts\activate     # Windows
-```
 
-2. Install dependencies:
+# 2. Activate it (Git Bash)
+source venv/bin/activate         # Mac/Linux
+source venv/Scripts/activate     # Windows
 
-```bash
+# You should see (venv) in your prompt now
+
+# 3. Upgrade pip
+python -m pip install --upgrade pip
+
+# 4. Install requirements
 pip install -r requirements.txt
-```
 
-3. Create `.env` file:
-
-```env
-SECRET_KEY=your-secret-key
-DEBUG=True
-```
-
-4. Run migrations:
-
-```bash
+# 5. Run migrations
 python manage.py migrate
-```
 
-5. Create superuser:
+# 6. Start server
+python manage.py runserver 0.0.0.0:8000
 
-```bash
-python manage.py createsuperuser
-```
 
-6. Start server:
+## Errors
+1. ModuleNotFoundError: No module named 'dj_database_url'
+  # run this
+  pip install dj-database-url psycopg2-binary
 
-```bash
-python manage.py runserver
-```
+2. ModuleNotFoundError: No module named 'pkg_resources'
+  # Install setuptools (provides pkg_resources)
+  pip install setuptools
 
-Server runs at: `http://127.0.0.1:8000/`
+  # Upgrade djangorestframework-simplejwt to a compatible version
+  pip install --upgrade djangorestframework-simplejwt
+
+  # Now try migrate again
+  python manage.py migrate
+
 
 ## Folder Structure
 

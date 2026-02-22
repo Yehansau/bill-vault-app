@@ -73,10 +73,10 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="upload"
+          name="camera"
           options={{
             headerShown: false,
-            title: "Upload",
+            title: "Camera",
             tabBarIcon: ({ focused }) => (
               <Image source={upload} className="size-10" />
             ),

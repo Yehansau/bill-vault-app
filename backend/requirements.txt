@@ -9,3 +9,12 @@ python-dotenv==1.0.0
 pytz==2025.2
 sqlparse==0.5.5
 tzdata==2025.3
+
+
+# Sprint 2 additions
+firebase-admin
+google-cloud-vision
+imagehash
+transformers
+torch
+dj-database-url
