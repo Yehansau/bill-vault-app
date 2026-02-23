@@ -1,7 +1,7 @@
 # classifier_service.py
 import os
 
-def classify_item(item_name):
+def classify_item(item_name, merchant = ""):
     use_ml = os.getenv('USE_ML_CLASSIFIER', 'False') == 'True'
     
     # Layer 1: merchant lookup (always runs, no ML needed)
