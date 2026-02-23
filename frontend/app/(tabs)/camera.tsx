@@ -69,7 +69,7 @@ export default function Upload() {
       }
 
       console.log(photo.uri);
-      router.push("/upload/preview");
+      router.push("/upload/bill-review");
     } catch (error) {
       console.log("Camera error:", error);
     }
