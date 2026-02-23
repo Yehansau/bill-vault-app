@@ -1,35 +1,11 @@
-/*import { View, Text, StyleSheet } from "react-native";
-import { auth } from "../../firebaseConfig";
-// import { auth } from "../firebaseConfig.js";
-
-export default function Index() {
-  console.log("Firebase initialized:", auth.app.name);
-
-  return (
-    <View style={styles.container}>
-      <Text>BillVault - Firebase Connected! ✅</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-*/
 import arrow from "@/assets/images/arrow.png";
 import bell from "@/assets/images/icons/bell.png";
 import vault from "@/assets/images/vault.png";
 import FilesCard from "@/components/home/RecentBillCard";
-// import ProgressBar from "@/components/ProgressBar";
-// import SearchBar from "@/components/SearchBar";
+import ProgressBar from "@/components/home/ProgressBar";
+import SearchBar from "@/components/home/SearchBar";
 import WarrantyCard from "@/components/home/WarrantyTrackerCard";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link } from "expo-router";
 import { FlatList, Image, ScrollView, Text, View } from "react-native";
 
 const HorizontalRule = () => {
@@ -69,16 +45,10 @@ export default function App() {
           <Text className="text-lg font-bold">{formattedDate}</Text>
         </View>
 
-        <Link href="./auth">
-          <Image
-            source={bell}
-            className="flex-end size-9"
-            resizeMode="contain"
-          />
-        </Link>
+        <Image source={bell} className="flex-end size-9" resizeMode="contain" />
       </View>
       <Text className="text-2xl font-bold mt-2">Hi John!</Text>
-      {/* <SearchBar /> */}
+      <SearchBar />
 
       <ScrollView
         className="flex-1"
@@ -112,7 +82,7 @@ export default function App() {
                   20GB of 35GB Used
                 </Text>
                 <View className="w-full pt-2">
-                  {/* <ProgressBar progress={67} /> */}
+                  <ProgressBar progress={67} />
                 </View>
               </View>
 
