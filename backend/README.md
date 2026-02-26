@@ -40,7 +40,7 @@ python manage.py createsuperuser
 6. Start server:
 
 ```bash
-python manage.py runserver
+c
 ```
 
 Server runs at: `http://127.0.0.1:8000/`
