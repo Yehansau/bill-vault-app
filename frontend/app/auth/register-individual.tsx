@@ -94,7 +94,7 @@ const RegisterScreen = () => {
   const validateConfirmPassword = (text: string) => {
     setConfirmPassword(text);
     setConfirmPasswordError(
-      text && text !== password ? "Passwords do not match" : ""
+      text && text !== password ? "Passwords do not match: Retype Correctly" : ""
     );
   };
 
