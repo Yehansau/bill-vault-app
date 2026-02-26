@@ -109,7 +109,7 @@ const RegisterScreen = () => {
       confirmPasswordError ||
       !isChecked
     ) {
-      Alert.alert("Fix required", "Please complete the form correctly");
+      Alert.alert("Fix required", "Please fill all the required fields. ");
       return;
     }
 
