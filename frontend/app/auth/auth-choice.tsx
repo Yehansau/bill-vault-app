@@ -34,22 +34,23 @@ const AuthChoiceScreen = () => {
       </View>
 
       <View style={styles.buttonContainer}>
+
         <CustomButton
           title="Login"
           onPress={handleLogin}
           loading={loading}
           variant="secondary"
         />
+        </View>
 
         <View style={styles.spacing} />
-
-        <CustomButton
+        {/* <CustomButton
           title="Create Account"
           onPress={handleCreateAccount}
           loading={loading}
           variant="secondary"
-        />
-      </View>
+        /> */}
+
     </LinearGradient>
   );
 };
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   content: {
     flex: 1,
@@ -84,9 +85,10 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 30,
     paddingBottom: 40,
+    marginTop: 20,
   },
   spacing: {
-    height: 20,
+    height: 20
   },
 });
 
