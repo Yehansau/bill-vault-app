@@ -86,13 +86,17 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 30,
-    paddingBottom: 40,
+    paddingBottom: 30,
     marginTop: -30,
-    marginBottom: 20
+    marginBottom: 20,
+    width: "92%",
+    alignSelf: "center"
   },
   
   createAccountbuttonContainer: {
-    marginBottom: 150
+    marginBottom: 150,
+    width: "75%",
+    alignSelf: "center"
   }
 });
 
