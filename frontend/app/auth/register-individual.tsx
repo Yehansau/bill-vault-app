@@ -188,7 +188,7 @@ const RegisterScreen = () => {
                 style={{ color: COLORS.secondary }}
                 className="text-base mt-2"
               >
-                Smart bill tracking starts here
+                Smart Bill Tracking Starts Here
               </Text>
             </View>
 
