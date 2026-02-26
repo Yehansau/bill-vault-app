@@ -132,7 +132,7 @@ export default function ProcessingScreen() {
       {/* Label */}
       <View style={styles.labelRow}>
         <Text style={styles.lightning}>⚡</Text>
-        <Text style={styles.labelText}>Analyzing warranties...</Text>
+        <Text style={styles.labelText}>Almost done...</Text>
       </View>
     </View>
   );
