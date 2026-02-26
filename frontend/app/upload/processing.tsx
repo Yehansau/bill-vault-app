@@ -17,7 +17,7 @@ export default function ProcessingScreen() {
   useEffect(() => {
     // Animate progress to 99%
     Animated.timing(progressAnim, {
-      toValue: 99,
+      toValue: 100,
       duration: 3000,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
