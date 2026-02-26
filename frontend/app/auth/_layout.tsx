@@ -4,6 +4,8 @@ const AuthLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {/* Welcome screen */}
+
+      
       <Stack.Screen name="welcome" />
 
       {/* Auth choice: Login or Create Account */}

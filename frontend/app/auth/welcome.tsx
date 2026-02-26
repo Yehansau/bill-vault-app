@@ -19,6 +19,14 @@ const WelcomeScreen = () => {
     }, 500);
   };
 
+  const handleprocess = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      router.push("../upload/processing"); 
+    }, 500);
+  };
+
   return (
     <View style={styles.container}>
       {/* 1. Top Purple Section (Background) */}
@@ -58,6 +66,14 @@ const WelcomeScreen = () => {
                 innerStyle={{borderRadius: 30}} // Pass the bold black text style here
             />
             </View>
+
+            <CustomButton
+                title="Prossesing"
+                onPress={handleprocess}
+                //loading={loading}
+                style={{marginTop: 30}}
+                innerStyle={{borderRadius: 30}} // Pass the bold black text style here
+            />
 
         </View>
       </View>

@@ -1,9 +1,182 @@
-import { View, Text } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Text, View, StyleSheet } from "react-native";
+import Svg, { Circle, Line } from "react-native-svg";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function ProcessingScreen() {
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const [displayPercent, setDisplayPercent] = useState(0);
+
+  const SIZE = 260;
+  const STROKE_WIDTH = 14;
+  const RADIUS = (SIZE - STROKE_WIDTH) / 2;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+  useEffect(() => {
+    // Animate progress to 99%
+    Animated.timing(progressAnim, {
+      toValue: 99,
+      duration: 3000,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+
+    // Rotate the tick marks ring
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Update displayed number
+    const listener = progressAnim.addListener(({ value }) => {
+      setDisplayPercent(Math.round(value));
+    });
+
+    return () => progressAnim.removeListener(listener);
+  }, []);
+
+  const strokeDashoffset = progressAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: [CIRCUMFERENCE, 0],
+  });
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  // Generate tick marks around the circle
+  const ticks = Array.from({ length: 72 }, (_, i) => {
+    const angle = (i / 72) * 2 * Math.PI;
+    const outerR = SIZE / 2;
+    const innerR = SIZE / 2 - 14;
+    const x1 = SIZE / 2 + innerR * Math.cos(angle);
+    const y1 = SIZE / 2 + innerR * Math.sin(angle);
+    const x2 = SIZE / 2 + outerR * Math.cos(angle);
+    const y2 = SIZE / 2 + outerR * Math.sin(angle);
+    return { x1, y1, x2, y2 };
+  });
+
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Processing... (coming soon)</Text>
+    <View style={styles.container}>
+      {/* Progress ring + tick marks */}
+      <View style={{ width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center" }}>
+        {/* Rotating tick marks */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { transform: [{ rotate }] },
+          ]}
+        >
+          <Svg width={SIZE} height={SIZE}>
+            {ticks.map((tick, i) => (
+              <AnimatedCircle key={i} />
+            ))}
+            {ticks.map((tick, i) => (
+              <Line
+                key={i}
+                x1={tick.x1}
+                y1={tick.y1}
+                x2={tick.x2}
+                y2={tick.y2}
+                stroke="rgba(255,255,255,0.35)"
+                strokeWidth={i % 3 === 0 ? 2.5 : 1}
+              />
+            ))}
+          </Svg>
+        </Animated.View>
+
+        {/* Progress arc */}
+        <Svg
+          width={SIZE}
+          height={SIZE}
+          style={StyleSheet.absoluteFillObject}
+        >
+          {/* Background circle */}
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={RADIUS}
+            stroke="rgba(255,255,255,0.15)"
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+          />
+          {/* Progress circle */}
+          <AnimatedCircle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={RADIUS}
+            stroke="white"
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            rotation="-90"
+            origin={`${SIZE / 2}, ${SIZE / 2}`}
+          />
+        </Svg>
+
+        {/* Inner dark circle */}
+        <View style={styles.innerCircle}>
+          <Text style={styles.percentText}>{displayPercent}%</Text>
+        </View>
+      </View>
+
+      {/* Label */}
+      <View style={styles.labelRow}>
+        <Text style={styles.lightning}>⚡</Text>
+        <Text style={styles.labelText}>Analyzing warranties...</Text>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#6B21A8",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 40,
+  },
+  innerCircle: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "#5B179A",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  percentText: {
+    color: "white",
+    fontSize: 42,
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  lightning: {
+    fontSize: 20,
+  },
+  labelText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "500",
+    letterSpacing: 0.3,
+  },
+});
