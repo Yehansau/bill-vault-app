@@ -44,12 +44,12 @@ const AuthChoiceScreen = () => {
         </View>
 
         <View style={styles.spacing} />
-        <CustomButton
+        {/* <CustomButton
           title="Create Account"
           onPress={handleCreateAccount}
           loading={loading}
           variant="secondary"
-        />
+        /> */}
 
     </LinearGradient>
   );
