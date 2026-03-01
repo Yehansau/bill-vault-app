@@ -1,19 +1,19 @@
 import backArrow from "@/assets/images/icons/backArrow.png";
-import history from "@/assets/images/icons/history.png";
 import picture from "@/assets/images/icons/picture.png";
 import scan from "@/assets/images/icons/scan.png";
+import CustomButton from "@/components/ui/CustomButton";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Link, router } from "expo-router";
 import { useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-interface Props {
+interface LangProps {
   text: string;
   focused: boolean;
   onPress: () => void;
 }
 
-const LanguageSelector = ({ text, focused, onPress }: Props) => {
+const LanguageSelector = ({ text, focused, onPress }: LangProps) => {
   return (
     <Pressable
       onPress={onPress}
@@ -63,11 +63,14 @@ export default function Upload() {
       if (photo.width < 1000) {
         alert("Move closer to the document");
       }
-      console.log(photo.uri);
       router.push("/upload/bill-review");
     } catch (error) {
       console.log("Camera error:", error);
     }
+  };
+
+  const pickFromGallery = async () => {
+    // Gallery picker logic goes here
   };
 
   return (
@@ -94,27 +97,58 @@ export default function Upload() {
         </View>
       </View>
 
-      {/* Bottom overlay — controls */}
-      <View style={styles.bottomOverlay}>
-        <View className="bg-[#3B1E54] rounded-full flex-row px-10 py-2 items-center">
-          <View className="flex-col items-center">
-            <Image source={history} className="size-8" />
-            <Text className="text-md font-bold text-white">History</Text>
-          </View>
+      {/* Top black bar */}
+      <View style={styles.overlayTop} pointerEvents="none" />
+      {/* Bottom black bar */}
+      <View style={styles.overlayBottom} pointerEvents="none" />
 
-          <View className="flex-col items-center px-20">
-            <View className="rounded-full h-16 w-16 bottom-8 absolute bg-[#D9D9D9] justify-center items-center">
-              <TouchableOpacity onPress={takePicture}>
-                <Image source={scan} className="size-8" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View className="flex-col items-center">
-            <Image source={picture} className="size-8" />
-            <Text className="text-md font-bold text-white">Import</Text>
-          </View>
+      {/* Scan frame — 4 corner brackets to guide document alignment */}
+      <View style={styles.scanFrame} pointerEvents="none">
+        {/* Top-left */}
+        <View style={styles.cornerTopLeft}>
+          <View style={styles.cornerLineH} />
+          <View style={styles.cornerLineV} />
         </View>
+        {/* Top-right — flip horizontal */}
+        <View style={[styles.cornerTopRight, { transform: [{ scaleX: -1 }] }]}>
+          <View style={styles.cornerLineH} />
+          <View style={styles.cornerLineV} />
+        </View>
+        {/* Bottom-left — flip vertical */}
+        <View style={[styles.cornerBottomLeft, { transform: [{ scaleY: -1 }] }]}>
+          <View style={styles.cornerLineH} />
+          <View style={styles.cornerLineV} />
+        </View>
+        {/* Bottom-right — flip both */}
+        <View style={[styles.cornerBottomRight, { transform: [{ scaleX: -1 }, { scaleY: -1 }] }]}>
+          <View style={styles.cornerLineH} />
+          <View style={styles.cornerLineV} />
+        </View>
+      </View>
+
+      {/* Bottom overlay — Upload From Gallery button + shutter */}
+      <View style={styles.bottomOverlay}>
+        {/* Upload From Gallery — CustomButton with gallery icon */}
+        <View style={styles.galleryWrapper}>
+          <CustomButton
+            title="Upload From Gallery"
+            onPress={pickFromGallery}
+            style={styles.galleryButtonOuter}
+            innerStyle={styles.galleryButtonInner}
+            textStyle={styles.galleryButtonText}
+          />
+          {/* Gallery icon overlaid on the right side of the button */}
+          <Image
+            source={picture}
+            style={styles.galleryIcon}
+            resizeMode="contain"
+          />
+        </View>
+
+        {/* Shutter button — floating circle below the gallery button */}
+        <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
+          <Image source={scan} style={{ width: 32, height: 32 }} resizeMode="contain" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -141,5 +175,115 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: "center",
     zIndex: 10,
+    gap: 16,
+  },
+  overlayTop: {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: "80%", // matches scanFrame top: "20%"
+    backgroundColor: "rgba(0,0,0,0.6)",
+    zIndex: 4,
+  },
+  overlayBottom: {
+    position: "absolute" as const,
+    top: "78%",   // matches scanFrame bottom: "23%" → 100% - 23% = 77%
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    zIndex: 4,
+  },
+  // Scan frame
+  scanFrame: {
+    position: "absolute" as const,
+    top: "21%",
+    left: "4%",
+    right: "4%",
+    bottom: "23%",
+    zIndex: 5,
+  },
+  cornerTopLeft: {
+    position: "absolute" as const,
+    width: 36,
+    height: 36,
+    top: 0,
+    left: 0,
+  },
+  cornerTopRight: {
+    position: "absolute" as const,
+    width: 36,
+    height: 36,
+    top: 0,
+    right: 0,
+  },
+  cornerBottomLeft: {
+    position: "absolute" as const,
+    width: 36,
+    height: 36,
+    bottom: 0,
+    left: 0,
+  },
+  cornerBottomRight: {
+    position: "absolute" as const,
+    width: 36,
+    height: 36,
+    bottom: 0,
+    right: 0,
+  },
+  cornerLineH: {
+    position: "absolute" as const,
+    width: 36,
+    height: 4,
+    top: 0,
+    left: 0,
+    backgroundColor: "#fff",
+    borderRadius: 2,
+  },
+  cornerLineV: {
+    position: "absolute" as const,
+    width: 4,
+    height: 36,
+    top: 0,
+    left: 0,
+    backgroundColor: "#fff",
+    borderRadius: 2,
+  },
+
+  galleryWrapper: {
+    width: "85%",
+    top: 12,
+    position: "relative" as const,
+    justifyContent: "center" as const,
+  },
+  galleryButtonOuter: {
+    borderRadius: 50,
+    width: "100%",
+  },
+  galleryButtonInner: {
+    borderRadius: 50,
+    paddingVertical: 18,
+  },
+  galleryButtonText: {
+    fontSize: 17,
+    fontWeight: "700",
+    marginRight: 32, // leave space for the icon on the right
+  },
+  galleryIcon: {
+    position: "absolute",
+    right: 20,
+    width: 26,
+    height: 26,
+    tintColor: "#fff",
+  },
+  shutterButton: {
+    width: 60,
+    height: 60,
+    top: 10,
+    borderRadius: 30,
+    backgroundColor: "#D9D9D9",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

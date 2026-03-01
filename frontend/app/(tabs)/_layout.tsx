@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import React, { useState } from "react";
 
 import analytics from "@/assets/images/icons/analytics.png";
@@ -32,6 +32,9 @@ export default function TabLayout() {
     }
     return <Image source={icon} className="size-8" />;
   };
+
+  const pathname = usePathname();
+  const isCamera = pathname === "/(tabs)/camera" || pathname === "/camera";
 
   return (
     <View style={{ flex: 1 }}>
@@ -86,6 +89,7 @@ export default function TabLayout() {
             title: "Camera",
             tabBarIcon: () => <View style={{ width: 44, height: 44 }} />,
             tabBarButton: () => <View style={{ flex: 1 }} />,
+            tabBarStyle: { display: "none" },
           }}
         />
         <Tabs.Screen
@@ -110,8 +114,8 @@ export default function TabLayout() {
         />
       </Tabs>
 
-      {/* UploadFAB floats above the centre of the tab bar */}
-      <UploadFAB onOpenChange={setFabOpen} />
+      {/* UploadFAB — hidden on camera screen */}
+      {!isCamera && <UploadFAB onOpenChange={setFabOpen} />}
     </View>
   );
 }
