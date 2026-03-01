@@ -36,3 +36,18 @@ WARRANTY_KEYWORDS = [
     'printer', 'scanner', 'monitor', 'tablet', 'ipad',
     'water heater', 'iron', 'blender', 'mixer', 'fan',
 ]
+
+def check_merchant(item_name, mechant):
+    mrchant = mechant.lower()
+    for key,catagories in MERCHANT_CATEGORIES.items():
+        if key in mrchant:
+            return
+                {
+                'category': category,
+                'category_confidence': 0.95,
+                'warranty_detected': check_warranty(item_name),
+                'warranty_confidence': 0.80
+            }
+    return None
+            
+            
