@@ -37,17 +37,38 @@ WARRANTY_KEYWORDS = [
     'water heater', 'iron', 'blender', 'mixer', 'fan',
 ]
 
+#layer 1 - merchant based classification
 def check_merchant(item_name, mechant):
     mrchant = mechant.lower()
-    for key,catagories in MERCHANT_CATEGORIES.items():
+    for key,catagory in MERCHANT_CATEGORIES.items():
         if key in mrchant:
             return
                 {
-                'category': category,
+                'category': catagory,
                 'category_confidence': 0.95,
-                'warranty_detected': check_warranty(item_name),
+                'warranty_detected': check_warranty(item_name), #to check warranty layer
                 'warranty_confidence': 0.80
             }
     return None
-            
+#layer 2 - keyword based classification
+def check_keywords(item_name):
+    item_lower = item_name.lower()
+    
+    for category, keywords in CATEGORY_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in item_lower:
+                return {
+                    'category': category,
+                    'category_confidence': 0.80,
+                    'warranty_detected': check_warranty(item_name),
+                    'warranty_confidence': 0.75
+                }
+    return None
+#layer 3 - warranty detection
+def check_warranty(item_name):
+    item_lower = item_name.lower()
+    for item in WARRANTY_KEYWORDS:
+        if item in item_lower:
+            return True
+    return False
             
