@@ -71,4 +71,64 @@ def check_warranty(item_name):
         if item in item_lower:
             return True
     return False
-            
+
+#helper fuction:only job is to build a clean consistent dictionary
+def build_result(category, category_confidence, warranty_detected):
+    return {
+        'category': category,
+        'category_confidence': category_confidence,
+        'warranty_detected': warranty_detected,
+        'warranty_confidence': 0.80 if warranty_detected else 0.0
+    }
+
+def classify_item(item_name, merchant=''):
+    
+    # Layer 1 — merchant dictionary
+    result = check_merchant_dict(item_name, merchant)
+    if result:
+        return result
+    
+    # Layer 2 — keyword matching
+    result = check_keywords(item_name)
+    if result:
+        return result
+    
+    # Layer 3 — warranty check only
+    warranty = check_warranty(item_name)
+    
+    # Layer 4 — ML fallback
+    use_ml = os.getenv('USE_ML_CLASSIFIER', 'False') == 'True'
+    if use_ml:
+        from transformers import pipeline
+        classifier = pipeline(
+            'zero-shot-classification',
+            model='valhalla/distilbart-mnli-12-3'
+        )
+        categories = list(CATEGORY_KEYWORDS.keys())
+        ml_result = classifier(item_name, candidate_labels=categories)
+        return build_result(
+            ml_result['labels'][0],
+            ml_result['scores'][0],
+            warranty
+        )
+    
+    # Default fallback
+    return build_result('Others', 0.5, warranty)
+
+#get whole list of items and  classifies all of them in one go
+def classify_items(items_list):
+    classified = []
+    
+    for item in items_list:
+        result = classify_item(item['name'], item.get('merchant', ''))
+        classified_item = {
+            'name': item['name'],
+            'price': item.get('price', None),
+            'category': result['category'],
+            'category_confidence': result['category_confidence'],
+            'warranty_detected': result['warranty_detected'],
+            'warranty_confidence': result['warranty_confidence'],
+        }
+        classified.append(classified_item)
+    
+    return classified
