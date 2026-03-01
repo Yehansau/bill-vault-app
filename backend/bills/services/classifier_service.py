@@ -1,30 +1,38 @@
 # classifier_service.py
 import os
 
-def classify_item(item_name, merchant = ""):
-    use_ml = os.getenv('USE_ML_CLASSIFIER', 'False') == 'True'
-    
-    # Layer 1: merchant lookup (always runs, no ML needed)
-    result = check_merchant_dict(item_name)
-    if result:
-        return result
-    
-    # Layer 2: keyword matching (always runs, no ML needed)
-    result = check_keywords(item_name)
-    if result:
-        return result
-    
-    # Layer 3: ML fallback (only runs if USE_ML_CLASSIFIER=True)
-    if use_ml:
-        from transformers import pipeline
-        classifier = pipeline("zero-shot-classification",
-                             model="valhalla/distilbart-mnli-12-3")
-        # ... ML classification
-    else:
-        # fallback when ML not available
-        return {
-            "category": "Others",
-            "category_confidence": 0.5,
-            "warranty_detected": False,
-            "warranty_confidence": 0.0
-        }
+MERCHANT_CATEGORIES = {
+    'keells': 'Grocery',
+    'cargills': 'Grocery',
+    'arpico': 'Grocery',
+    'abans': 'Electronics',
+    'singer': 'Electronics',
+    'softlogic': 'Electronics',
+    'laugfs': 'Utilities',
+    'mcdonalds': 'Restaurant',
+    'kfc': 'Restaurant',
+    'pizzahut': 'Restaurant',
+    'osu': 'Healthcare',
+    'hemas': 'Healthcare'
+}
+CATEGORY_KEYWORDS = {
+    'Grocery': ['rice', 'milk', 'bread', 'sugar', 'flour', 'egg', 'butter', 
+                'vegetable', 'fruit', 'chicken', 'fish', 'meat', 'oil', 'salt'],
+    'Electronics': ['laptop', 'phone', 'mobile', 'hdmi', 'cable', 'charger', 
+                    'battery', 'camera', 'printer', 'monitor', 'keyboard', 'mouse'],
+    'Healthcare': ['tablet', 'syrup', 'medicine', 'vitamin', 'capsule', 
+                   'bandage', 'cream', 'drops', 'injection', 'pharmacy'],
+    'Restaurant': ['burger', 'pizza', 'rice', 'kottu', 'noodles', 'soup', 
+                   'coffee', 'tea', 'juice', 'dessert', 'cake'],
+    'Clothing': ['shirt', 'trouser', 'dress', 'shoes', 'socks', 'jacket', 
+                 'skirt', 'jeans', 'sandal', 'cap', 'belt'],
+    'Utilities': ['electricity', 'water', 'gas', 'internet', 'bill', 
+                  'recharge', 'topup', 'subscription'],
+}
+WARRANTY_KEYWORDS = [
+    'tv', 'television', 'laptop', 'computer', 'phone', 'mobile',
+    'refrigerator', 'fridge', 'washing machine', 'washer',
+    'air conditioner', 'ac', 'microwave', 'oven', 'camera',
+    'printer', 'scanner', 'monitor', 'tablet', 'ipad',
+    'water heater', 'iron', 'blender', 'mixer', 'fan',
+]
