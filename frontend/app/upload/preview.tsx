@@ -1,7 +1,7 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import backArrow from "@/assets/images/icons/backArrow.png";
+import { router, useLocalSearchParams } from "expo-router";
+import { Image, ImageStyle, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PreviewScreen() {
   const { imageUri, language, uploadType } = useLocalSearchParams<{
@@ -25,15 +25,17 @@ export default function PreviewScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Full screen photo */}
+      {/* Photo — constrained between the black bars */}
       {imageUri ? (
-        <Image
-          source={{ uri: imageUri }}
-          style={StyleSheet.absoluteFillObject}
-          resizeMode="cover"
-        />
+        <View style={styles.imageWindow}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.billImage}
+            resizeMode="cover"
+          />
+        </View>
       ) : (
-        <View style={[StyleSheet.absoluteFillObject, styles.noImage]}>
+        <View style={styles.noImage}>
           <Text style={styles.noImageText}>No image captured</Text>
         </View>
       )}
@@ -43,21 +45,18 @@ export default function PreviewScreen() {
       {/* Bottom black bar */}
       <View style={styles.overlayBottom} pointerEvents="none" />
 
-      {/* Top — back arrow */}
+      {/* Top — back arrow (above the black bar) */}
       <View style={[styles.topOverlay, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity onPress={handleRetake} style={styles.backButton} activeOpacity={0.8}>
-          <Image source={backArrow} style={{ width: 36, height: 24 }} resizeMode="contain" />
+          <Image source={backArrow} style={styles.backArrowImg} resizeMode="contain" />
         </TouchableOpacity>
       </View>
 
       {/* Bottom — Retake + Use Photo buttons */}
       <View style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
-        {/* Retake */}
         <TouchableOpacity style={styles.circleButton} onPress={handleRetake} activeOpacity={0.85}>
           <Text style={styles.retakeIcon}>↺</Text>
         </TouchableOpacity>
-
-        {/* Use Photo */}
         <TouchableOpacity style={[styles.circleButton, styles.confirmButton]} onPress={handleUsePhoto} activeOpacity={0.85}>
           <Text style={styles.confirmIcon}>✓</Text>
         </TouchableOpacity>
@@ -66,37 +65,72 @@ export default function PreviewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<{
+  container: ViewStyle;
+  imageWindow: ViewStyle;
+  billImage: ImageStyle;
+  noImage: ViewStyle;
+  noImageText: TextStyle;
+  overlayTop: ViewStyle;
+  overlayBottom: ViewStyle;
+  topOverlay: ViewStyle;
+  backButton: ViewStyle;
+  backArrowImg: ImageStyle;
+  bottomOverlay: ViewStyle;
+  circleButton: ViewStyle;
+  confirmButton: ViewStyle;
+  retakeIcon: TextStyle;
+  confirmIcon: TextStyle;
+}>({
   container: {
     flex: 1,
     backgroundColor: "#000",
   },
-  overlayTop: {
-    position: "absolute" as const,
-    top: -5,
+  imageWindow: {
+    position: "absolute",
+    top: "15%",
+    bottom: "18%",
     left: 0,
     right: 0,
-    height: "15%",
-    backgroundColor: "rgba(0,0,0,0.75)",
-    zIndex: 5,
+    backgroundColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  overlayBottom: {
-    position: "absolute" as const,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "18%",
-    backgroundColor: "rgba(0,0,0,0.75)",
-    zIndex: 5,
+  billImage: {
+    width: "100%",
+    height: "100%",
   },
   noImage: {
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
+    position: "absolute",
+    top: "15%",
+    bottom: "18%",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#111",
   },
   noImageText: {
     color: "#fff",
     fontSize: 16,
+  },
+  overlayTop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "15%",
+    backgroundColor: "rgba(0,0,0,0.85)",
+    zIndex: 5,
+  },
+  overlayBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "18%",
+    backgroundColor: "rgba(0,0,0,0.85)",
+    zIndex: 5,
   },
   topOverlay: {
     position: "absolute",
@@ -109,7 +143,11 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: "center" as const,
+    justifyContent: "center",
+  },
+  backArrowImg: {
+    width: 36,
+    height: 24,
   },
   bottomOverlay: {
     position: "absolute",

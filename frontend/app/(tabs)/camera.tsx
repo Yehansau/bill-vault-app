@@ -62,10 +62,6 @@ export default function Upload() {
         base64: false,
         skipProcessing: false,
       });
-      if (photo.width < 1000) {
-        alert("Move closer to the document");
-        return;
-      }
       router.push({
         pathname: "/upload/preview",
         params: { imageUri: photo.uri, language: selected, uploadType },
@@ -112,10 +108,11 @@ export default function Upload() {
         </View>
       </View>
 
-      {/* Top black bar */}
-      <View style={styles.overlayTop} pointerEvents="none" />
-      {/* Bottom black bar */}
+      {/* 4-sided dark overlay — everything outside the scan frame is darkened
+      <View style={styles.overlayTop}    pointerEvents="none" />
       <View style={styles.overlayBottom} pointerEvents="none" />
+      <View style={styles.overlayLeft}   pointerEvents="none" />
+      <View style={styles.overlayRight}  pointerEvents="none" /> */}
 
       {/* Scan frame — 4 corner brackets to guide document alignment */}
       <View style={styles.scanFrame} pointerEvents="none">
@@ -192,31 +189,50 @@ const styles = StyleSheet.create({
     zIndex: 10,
     gap: 16,
   },
+  // 4-sided viewfinder overlay — matches scanFrame: top 20%, bottom 22%, left 8%, right 8%
   overlayTop: {
     position: "absolute" as const,
     top: 0,
     left: 0,
     right: 0,
-    bottom: "80%", // matches scanFrame top: "20%"
-    backgroundColor: "rgba(0,0,0,0.75)",
+    height: "20%",
+    backgroundColor: "rgba(0,0,0,0.85)",
     zIndex: 4,
   },
   overlayBottom: {
     position: "absolute" as const,
-    top: "78%",   // matches scanFrame bottom: "23%" → 100% - 23% = 77%
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.75)",
+    height: "22%",
+    backgroundColor: "rgba(0,0,0,0.85)",
     zIndex: 4,
   },
-  // Scan frame
+  overlayLeft: {
+    position: "absolute" as const,
+    top: "20%",
+    bottom: "22%",
+    left: 0,
+    width: "8%",
+    backgroundColor: "rgba(0,0,0,0.85)",
+    zIndex: 4,
+  },
+  overlayRight: {
+    position: "absolute" as const,
+    top: "20%",
+    bottom: "22%",
+    right: 0,
+    width: "8%",
+    backgroundColor: "rgba(0,0,0,0.85)",
+    zIndex: 4,
+  },
+  // Scan frame — must match overlay values exactly
   scanFrame: {
     position: "absolute" as const,
-    top: "21%",
-    left: "4%",
-    right: "4%",
+    top: "20%",
     bottom: "23%",
+    left: "8%",
+    right: "8%",
     zIndex: 5,
   },
   cornerTopLeft: {
@@ -268,7 +284,7 @@ const styles = StyleSheet.create({
 
   galleryWrapper: {
     width: "85%",
-    top: 12,
+    top: 5,
     position: "relative" as const,
     justifyContent: "center" as const,
   },
@@ -295,7 +311,6 @@ const styles = StyleSheet.create({
   shutterButton: {
     width: 60,
     height: 60,
-    top: 10,
     borderRadius: 30,
     backgroundColor: "#D9D9D9",
     justifyContent: "center",

@@ -42,8 +42,7 @@ def check_merchant(item_name, mechant):
     mrchant = mechant.lower()
     for key,catagory in MERCHANT_CATEGORIES.items():
         if key in mrchant:
-            return
-                {
+            return {
                 'category': catagory,
                 'category_confidence': 0.95,
                 'warranty_detected': check_warranty(item_name), #to check warranty layer
@@ -84,7 +83,7 @@ def build_result(category, category_confidence, warranty_detected):
 def classify_item(item_name, merchant=''):
     
     # Layer 1 — merchant dictionary
-    result = check_merchant_dict(item_name, merchant)
+    result = check_merchant(item_name, merchant)
     if result:
         return result
     
