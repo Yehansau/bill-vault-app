@@ -2,8 +2,9 @@ import backArrow from "@/assets/images/icons/backArrow.png";
 import picture from "@/assets/images/icons/picture.png";
 import scan from "@/assets/images/icons/scan.png";
 import CustomButton from "@/components/ui/CustomButton";
+import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Link, router } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -29,6 +30,7 @@ const LanguageSelector = ({ text, focused, onPress }: LangProps) => {
 };
 
 export default function Upload() {
+  const { uploadType } = useLocalSearchParams<{ uploadType: string }>();
   const [permission, requestPermission] = useCameraPermissions();
   const [selected, setSelected] = useState<string | null>("English");
   const cameraRef = useRef<CameraView>(null);
@@ -62,15 +64,28 @@ export default function Upload() {
       });
       if (photo.width < 1000) {
         alert("Move closer to the document");
+        return;
       }
-      router.push("/upload/bill-review");
+      router.push({
+        pathname: "/upload/preview",
+        params: { imageUri: photo.uri, language: selected, uploadType },
+      });
     } catch (error) {
       console.log("Camera error:", error);
     }
   };
 
   const pickFromGallery = async () => {
-    // Gallery picker logic goes here
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      router.push({
+        pathname: "/upload/preview",
+        params: { imageUri: result.assets[0].uri, language: selected, uploadType },
+      });
+    }
   };
 
   return (
@@ -272,7 +287,7 @@ const styles = StyleSheet.create({
   },
   galleryIcon: {
     position: "absolute",
-    right: 20,
+    right: 55,
     width: 26,
     height: 26,
     tintColor: "#fff",
