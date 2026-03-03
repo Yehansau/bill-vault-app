@@ -5,7 +5,9 @@ import FilesCard from "@/components/home/RecentBillCard";
 import ProgressBar from "@/components/home/ProgressBar";
 import SearchBar from "@/components/home/SearchBar";
 import WarrantyCard from "@/components/home/WarrantyTrackerCard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
 import { FlatList, Image, ScrollView, Text, View } from "react-native";
 
 const HorizontalRule = () => {
@@ -13,6 +15,14 @@ const HorizontalRule = () => {
 };
 
 export default function App() {
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem("full_name").then((name) =>
+      setUserName(name || "there")
+    );
+  }, []);
+
   const getOrdinal = (day: number) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
@@ -47,7 +57,7 @@ export default function App() {
 
         <Image source={bell} className="flex-end size-9" resizeMode="contain" />
       </View>
-      <Text className="text-2xl font-bold mt-2">Hi John!</Text>
+      <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
       <SearchBar />
 
       <ScrollView

@@ -32,11 +32,16 @@ const LoginScreen = () => {
 
       // assuming backend returns: { token: "..." }
       const token = response.data.access;
+      const fullName = response.data.user.full_name || response.data.name || "";
 
       if (token) {
         await AsyncStorage.setItem("token", token); // only save if defined
       } else {
         console.warn("Login response has no access token");
+      }
+
+      if (fullName) {
+        await AsyncStorage.setItem("full_name", fullName);
       }
 
       Alert.alert("Success", "Logged in successfully");

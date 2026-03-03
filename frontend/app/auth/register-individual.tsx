@@ -134,7 +134,12 @@ const RegisterScreen = () => {
         await AsyncStorage.setItem("token", response.data.token);
       }
 
-      Alert.alert("Success 🎉", "Your account has been created");
+      // Save the name the user typed so home screen can show "Hi [name]!"
+      if (name) {
+        await AsyncStorage.setItem("full_name", name);
+      }
+
+      // Alert.alert("Success 🎉", "Your account has been created");
       router.push("/auth/registration-success");
     } catch {
       Alert.alert("Error", "Something went wrong. Try again.");
