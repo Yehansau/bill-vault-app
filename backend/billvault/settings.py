@@ -88,6 +88,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'billvault.wsgi.application'
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.getenv('DATABASE_URL'),
+#         conn_max_age=0  # Set to 0 for Transaction Pooling!
+#     )
+# }
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
