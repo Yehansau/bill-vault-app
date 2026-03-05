@@ -1,45 +1,93 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Text, View, StyleSheet } from "react-native";
+import { Animated, Easing, Text, View, StyleSheet, Alert } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
+import { router, useLocalSearchParams } from "expo-router";
+import { useBillUpload } from "@/hooks/useBillUpload";
+import DuplicateModal from "@/components/upload/DuplicateModal";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function ProcessingScreen() {
+  const { imageUri, language, uploadType } = useLocalSearchParams<{
+    imageUri: string;
+    language: string;
+    uploadType: string;
+  }>();
+
+  const {
+    progress,
+    statusMessage,
+    isDuplicate,
+    existingBill,
+    processedData,
+    startUpload,
+  } = useBillUpload();
+
   const progressAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const [displayPercent, setDisplayPercent] = useState(0);
+  const [uploadStarted, setUploadStarted] = useState(false);
 
   const SIZE = 260;
   const STROKE_WIDTH = 14;
   const RADIUS = (SIZE - STROKE_WIDTH) / 2;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+  // Sync progress from hook to animation
   useEffect(() => {
-    // Animate progress to 99%
     Animated.timing(progressAnim, {
-      toValue: 100,
-      duration: 3000,
+      toValue: progress,
+      duration: 400,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
+  }, [progress]);
 
-    // Rotate the tick marks ring
+  // Rotating tick marks animation
+  useEffect(() => {
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
         duration: 4000,
         easing: Easing.linear,
         useNativeDriver: true,
-      })
+      }),
     ).start();
 
-    // Update displayed number
     const listener = progressAnim.addListener(({ value }) => {
       setDisplayPercent(Math.round(value));
     });
 
     return () => progressAnim.removeListener(listener);
   }, []);
+
+  // Start upload when screen mounts
+  useEffect(() => {
+    if (!uploadStarted && imageUri) {
+      setUploadStarted(true);
+      startUpload(
+        imageUri,
+        language || "english",
+        uploadType || "receipt",
+      ).catch((err) => {
+        Alert.alert("Upload Failed", "Something went wrong. Please try again.");
+        console.error("Upload error:", err);
+        router.back();
+      });
+    }
+  }, [imageUri]);
+
+  // Navigate when processing is complete
+  useEffect(() => {
+    if (processedData && progress === 100) {
+      setTimeout(() => {
+        router.replace({
+          pathname: "/upload/bill-review",
+          params: { processedData: JSON.stringify(processedData) },
+        });
+      }, 600);
+    }
+  }, [processedData, progress]);
 
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 100],
@@ -51,7 +99,6 @@ export default function ProcessingScreen() {
     outputRange: ["0deg", "360deg"],
   });
 
-  // Generate tick marks around the circle
   const ticks = Array.from({ length: 72 }, (_, i) => {
     const angle = (i / 72) * 2 * Math.PI;
     const outerR = SIZE / 2;
@@ -65,14 +112,39 @@ export default function ProcessingScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Duplicate Modal */}
+      <DuplicateModal
+        visible={isDuplicate}
+        existingBill={existingBill}
+        onViewExisting={() => {
+          router.replace({
+            pathname: "/upload/bill-review",
+            params: { processedData: JSON.stringify(existingBill) },
+          });
+        }}
+        onUploadAnyway={() => {
+          // Re-trigger upload ignoring duplicate
+          startUpload(
+            imageUri,
+            language || "english",
+            uploadType || "receipt",
+          ).catch(console.error);
+        }}
+        onCancel={() => router.back()}
+      />
+
       {/* Progress ring + tick marks */}
-      <View style={{ width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          width: SIZE,
+          height: SIZE,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {/* Rotating tick marks */}
         <Animated.View
-          style={[
-            StyleSheet.absoluteFillObject,
-            { transform: [{ rotate }] },
-          ]}
+          style={[StyleSheet.absoluteFillObject, { transform: [{ rotate }] }]}
         >
           <Svg width={SIZE} height={SIZE}>
             {ticks.map((tick, i) => (
@@ -93,12 +165,7 @@ export default function ProcessingScreen() {
         </Animated.View>
 
         {/* Progress arc */}
-        <Svg
-          width={SIZE}
-          height={SIZE}
-          style={StyleSheet.absoluteFillObject}
-        >
-          {/* Background circle */}
+        <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFillObject}>
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -107,7 +174,6 @@ export default function ProcessingScreen() {
             strokeWidth={STROKE_WIDTH}
             fill="transparent"
           />
-          {/* Progress circle */}
           <AnimatedCircle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -129,10 +195,10 @@ export default function ProcessingScreen() {
         </View>
       </View>
 
-      {/* Label */}
+      {/* Status message */}
       <View style={styles.labelRow}>
         <Text style={styles.lightning}>⚡</Text>
-        <Text style={styles.labelText}>Almost done...</Text>
+        <Text style={styles.labelText}>{statusMessage || "Starting..."}</Text>
       </View>
     </View>
   );
