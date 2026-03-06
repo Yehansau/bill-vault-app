@@ -84,6 +84,7 @@ const LoginScreen = () => {
             onPress={handleLogin}
             loading={loading}
             variant="secondary"
+            style={{ borderWidth: 0}}
           />
         </View>
         <View style={styles.rectangleContainer}>

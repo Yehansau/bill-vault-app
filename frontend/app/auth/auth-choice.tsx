@@ -45,7 +45,7 @@ const AuthChoiceScreen = () => {
           onPress={handleLogin}
           loading={loading}
           variant="secondary"
-          style={{ width: "80%" }}
+          style={{ width: "80%", borderWidth: 0}}
         />
 
         <View style={styles.spacing} />
@@ -55,7 +55,7 @@ const AuthChoiceScreen = () => {
           onPress={handleCreateAccount}
           loading={loading}
           variant="secondary"
-          style={{ width: "80%" }}
+          style={{ width: "80%", borderWidth: 0 }}
         />
       </View>
     </LinearGradient>
