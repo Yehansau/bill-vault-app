@@ -79,15 +79,16 @@ export default function ProcessingScreen() {
 
   // Navigate when processing is complete
   useEffect(() => {
-    if (processedData && progress === 100) {
+    if (processedData) {
       setTimeout(() => {
+        const dest = uploadType === 'warranty' ? '/upload/warranty-review' : '/upload/bill-review';
         router.replace({
-          pathname: "/upload/bill-review",
-          params: { processedData: JSON.stringify(processedData) },
+          pathname: dest,
+          params: { processedData: JSON.stringify(processedData), imageUri, uploadType },
         });
-      }, 600);
+      }, 1000);
     }
-  }, [processedData, progress]);
+  }, [processedData]);
 
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 100],
