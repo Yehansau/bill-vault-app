@@ -47,7 +47,7 @@ const OCRScreen = () => {
       isEditable: false,
       warranty: false,
       confirmed: false,
-      expiryDate: undefined,
+      expiryDate: new Date(2025, 12, 10),
     },
     "2": {
       isEditable: false,
@@ -59,13 +59,13 @@ const OCRScreen = () => {
       isEditable: false,
       warranty: false,
       confirmed: false,
-      expiryDate: undefined,
+      expiryDate: new Date(2025, 12, 10),
     },
     "4": {
       isEditable: false,
       warranty: false,
       confirmed: false,
-      expiryDate: undefined,
+      expiryDate: new Date(2025, 12, 10),
     },
   });
 
@@ -139,7 +139,11 @@ const OCRScreen = () => {
     if (actionItemId) {
       setItemStates((prev) => ({
         ...prev,
-        [actionItemId]: { ...prev[actionItemId], isEditable: true },
+        [actionItemId]: {
+          ...prev[actionItemId],
+          isEditable: true,
+          warranty: true,
+        },
       }));
     }
     actionSheetRef.current?.setModalVisible(false);
@@ -166,7 +170,7 @@ const OCRScreen = () => {
           paddingBottom: 100,
         }}
       >
-        <View className="flex-1 items-center px-5">
+        <View className="flex-1 items-center px-5 mt-5">
           <Image source={check} className="size-16 my-4" />
           <Text className="text-lg font-bold">Scan Complete!</Text>
           <View className="border border-gray-300 rounded-lg h-auto w-full py-3 items-center shadow-xl bg-white mb-5">

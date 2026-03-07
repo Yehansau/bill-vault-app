@@ -8,7 +8,15 @@ import WarrantyCard from "@/components/home/WarrantyTrackerCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { FlatList, Image, ScrollView, Text, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { router } from "expo-router";
 
 const HorizontalRule = () => {
   return <View className="w-3/4 bg-gray-200 h-1 my-4 mx-auto" />;
@@ -19,7 +27,7 @@ export default function App() {
 
   useEffect(() => {
     AsyncStorage.getItem("full_name").then((name) =>
-      setUserName(name || "there")
+      setUserName(name || "there"),
     );
   }, []);
 
@@ -105,7 +113,9 @@ export default function App() {
 
         <View className="flex-row justify-between">
           <Text className="text-2xl font-bold">Warranty Tracker</Text>
-          <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          <TouchableOpacity onPress={() => router.push("/upload/bill-review")}>
+            <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 155, marginVertical: 10 }}>

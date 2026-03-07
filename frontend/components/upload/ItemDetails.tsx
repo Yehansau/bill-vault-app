@@ -107,6 +107,17 @@ const ItemDetails = ({
               editable={selectedId === id ? true : false}
               onChangeText={setItemSize}
             />
+            <TouchableOpacity
+              onPress={() => {
+                onOpenActionSheet(id);
+              }}
+            >
+              <Text
+                className={`${selectedId === id && !state.warranty ? "text-[#3B1E54] text-sm mt-4" : "hidden"}`}
+              >
+                + Add Warranty Info
+              </Text>
+            </TouchableOpacity>
           </View>
           <View className="flex-row">
             <View className="flex-col items-end">
