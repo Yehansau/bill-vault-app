@@ -10,7 +10,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from "react-native";
-import illustration from "../../assets/images/welcome_screen.png";
+import illustration from "../../assets/images/happy_woman.png";
 import mainLogo from "../../assets/images/billvault-black-image.png";
 
 const { width } = Dimensions.get("window");
@@ -86,9 +86,10 @@ const styles = StyleSheet.create({
     width: width,
   },
   illustration: {
-    width: width * 0.85,
-    height: width * 0.85,
+    width: width * 1.8,
+    height: width * 1.8,
     marginTop: 20,
+    marginRight: 38
   },
   bottomSection: {
     flex: 1,
