@@ -15,6 +15,13 @@ MERCHANT_CATEGORIES = {
     'osu': 'Healthcare',
     'hemas': 'Healthcare'
 }
+
+PREPARED_FOOD_KEYWORDS = [
+    'fried rice', 'mix rice', 'mixed rice', 'kottu', 'roti', 'noodles',
+    'burger', 'sandwich', 'pizza', 'pasta', 'curry', 'meal', 'combo',
+    'plate', 'portion', 'piece', 'pcs', 'roll', 'wrap', 'sub'
+]
+
 CATEGORY_KEYWORDS = {
     'Grocery': ['rice', 'milk', 'bread', 'sugar', 'flour', 'egg', 'butter', 
                 'vegetable', 'fruit', 'chicken', 'fish', 'meat', 'oil', 'salt'],
@@ -80,13 +87,18 @@ def build_result(category, category_confidence, warranty_detected):
         'warranty_confidence': 0.80 if warranty_detected else 0.0
     }
 
-def classify_item(item_name, merchant=''):
+def classify_item(item_name: str, merchant: str = '') -> dict:
+    item_lower = item_name.lower()
     
     # Layer 1 — merchant dictionary
     result = check_merchant(item_name, merchant)
     if result:
         return result
-    
+
+    warranty = check_warranty(item_name)
+    if any(kw in item_lower for kw in PREPARED_FOOD_KEYWORDS):
+        return build_result('Restaurant', 0.85, warranty)
+
     # Layer 2 — keyword matching
     result = check_keywords(item_name)
     if result:

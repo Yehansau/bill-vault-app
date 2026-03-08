@@ -1,43 +1,50 @@
-import imagehash
-import requests
-from PIL import Image
-from io import BytesIO
-
-
-def calculate_image_hash(image_url: str) -> str:
+def check_duplicate_by_data(user_id, merchant, bill_date, total_amount, items):
     """
-    Download the image at image_url and return its perceptual hash string.
-    This hash is stored in Bill.image_hash and used to detect duplicate uploads.
-    Two photos of the same receipt will produce very similar hashes even
-    if taken at slightly different angles or lighting.
-    """
-    response = requests.get(image_url, timeout=15)
-    response.raise_for_status()
-    img = Image.open(BytesIO(response.content))
-    return str(imagehash.phash(img))
+    Check if this user already has a bill with the same merchant, date,
+    total amount, and items list.
 
+    All 4 must match to be considered a duplicate:
+        - merchant (case insensitive)
+        - bill_date
+        - total_amount
+        - sorted list of item names (case insensitive)
 
-def check_duplicate(user_id, new_hash: str):
-    """
-    Compare new_hash against all existing bill hashes for this user.
     Returns the existing Bill if a duplicate is found, otherwise None.
-
-    A hash difference below 10 means the images are considered duplicates.
-    Lower threshold = stricter matching.
     """
-    # Imported here to avoid circular imports at module load time
-    from bills.models import Bill
+    from bills.models import Bill, BillItem
 
-    existing_bills = Bill.objects.filter(
-        user_id=user_id
-    ).exclude(image_hash='')
+    # If we don't have enough data to compare, let it through
+    if not merchant or not bill_date or not total_amount:
+        return None
 
-    for bill in existing_bills:
-        try:
-            diff = imagehash.hex_to_hash(new_hash) - imagehash.hex_to_hash(bill.image_hash)
-            if diff < 10:
-                return bill  # duplicate found — return the existing bill
-        except Exception:
-            continue  # skip bills with malformed hashes
+    # Step 1 — find bills with matching merchant + date + total
+    candidate_bills = Bill.objects.filter(
+        user_id=user_id,
+        merchant__iexact=merchant,
+        bill_date=bill_date,
+        total_amount=total_amount,
+        status='completed'
+    )
 
-    return None  # no duplicate found
+    if not candidate_bills.exists():
+        return None
+
+    # Step 2 — build sorted list of new item names for comparison
+    new_item_names = sorted([
+        item.get('name', '').lower().strip()
+        for item in items
+        if item.get('name', '').strip()
+    ])
+
+    # Step 3 — compare items list against each candidate bill
+    for bill in candidate_bills:
+        existing_item_names = sorted([
+            item.name.lower().strip()
+            for item in BillItem.objects.filter(bill=bill)
+        ])
+
+        if new_item_names == existing_item_names:
+            return bill  # all 4 layers match — definite duplicate
+
+    # Merchant + date + total matched but items were different — not a duplicate
+    return None

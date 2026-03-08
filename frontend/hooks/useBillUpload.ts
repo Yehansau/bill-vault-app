@@ -40,10 +40,16 @@ export const useBillUpload = () => {
     } as any);
     formData.append("upload_type", uploadType);
 
+    console.log("STEP 1: Uploading image to Firebase...");
     const uploadRes = await billsAPI.upload(formData);
+    console.log("STEP 1 response:", JSON.stringify(uploadRes?.data));
     setProgress(30);
 
-    const firebaseUrl = uploadRes.data.firebase_url;
+    const firebaseUrl = uploadRes?.data?.firebase_url;
+
+    if (!firebaseUrl) {
+      throw new Error("Firebase upload failed — no URL returned from backend");
+    }
 
     // Save firebase_url so continueAsDuplicate can reuse it
     setSavedFirebaseUrl(firebaseUrl);
@@ -61,11 +67,13 @@ export const useBillUpload = () => {
     setStatusMessage("Extracting text...");
     setProgress(50);
 
+    console.log("STEP 2: Processing image...", { firebaseUrl, language, uploadType });
     const processRes = await billsAPI.process({
       firebase_url: firebaseUrl,
       language,
       upload_type: uploadType,
     });
+    console.log("STEP 2 response:", JSON.stringify(processRes?.data));
 
     setProgress(70);
     setStatusMessage("Detecting items...");
