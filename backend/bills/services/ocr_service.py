@@ -66,42 +66,44 @@ def extract_total(text: str) -> str:
     return ''
 
 def extract_items(lines: list) -> list:
-    """Find item lines from the receipt text.
-    Looks for lines with an item name followed by a price number.
-    """
     items = []
     
-    # Pattern: text followed by spaces followed by a price number
-    item_pattern = re.compile(r'^(.+?)\s{2,}(\d+[\.,]\d{2})\s*$')
+    # Pattern: find all numbers on the line, take the last one as price
+    price_pattern = re.compile(r'(\d+[\.,]\d{2})')
     
-    # Keywords that indicate non-item lines to skip
     skip_keywords = [
-        'total', 'subtotal', 'tax', 'vat', 'cash', 'change',
-        'thank', 'welcome', 'tel', 'phone', 'address', 'date',
-        'receipt', 'invoice', 'bill', 'discount'
+        'total', 'subtotal', 'sub total', 'grand total', 'tax', 'vat', 
+        'cash', 'change', 'thank', 'welcome', 'tel', 'phone', 'address', 
+        'date', 'receipt', 'invoice', 'bill', 'discount', 'party',
+        'name', 'qty', 'rate', 'amount'
     ]
     
     for line in lines:
         line = line.strip()
         
-        # Skip empty lines
         if not line:
             continue
             
-        # Skip lines with non-item keywords
         if any(keyword in line.lower() for keyword in skip_keywords):
             continue
         
-        # Try to match item pattern
-        match = item_pattern.match(line)
-        if match:
-            items.append({
-                'name': match.group(1).strip(),
-                'price': match.group(2).replace(',', '.')
-            })
+        # Find all numbers in the line
+        all_numbers = price_pattern.findall(line)
+        
+        if all_numbers:
+            # Last number is always the amount/price
+            price = all_numbers[-1].replace(',', '.')
+            
+            # Item name is everything before the first number
+            name = price_pattern.split(line)[0].strip()
+            
+            if name and float(price) > 0:
+                items.append({
+                    'name': name,
+                    'price': price
+                })
     
     return items
-
 def parse_bill_data(ocr_text: str) -> dict:
     """
     Parse raw OCR text from a receipt into structured data.
