@@ -5,7 +5,7 @@ import { SaveBillPayload } from "@/types/bill.types";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL = "http://10.162.58.158:8000/api";
+const API_BASE_URL = "http://192.168.1.165:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -40,9 +40,10 @@ api.interceptors.response.use(
     // No response → network issue
     if (!error.response) {
       alert("Network error. Please check your connection.");
-      console.error("Network error:", error);
-      return;
+      console.error("Network error:", error.message);
+      return Promise.reject(error); // ← throw it so the hook catches it;
     }
+    console.error("Error response data:", JSON.stringify(error.response.data));
 
     const status = error.response.status;
     const data = error.response.data;
@@ -51,13 +52,13 @@ api.interceptors.response.use(
       // Expected auth errors
       console.warn("Auth error:", data);
       // Alert should be shown in screen logic OR here (pick one)
-      return;
+      return Promise.reject(error); // ← throw it
     }
 
     // Unexpected server errors
     alert("Something went wrong. Please try again.");
     console.error("Server error:", error);
-    return;
+    return Promise.reject(error); // ← throw it
   },
 );
 

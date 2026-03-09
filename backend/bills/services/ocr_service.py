@@ -1,5 +1,6 @@
 import re
 from google.cloud import vision
+from datetime import datetime
 
 
 def extract_text_from_url(image_url: str, language: str) -> str:
@@ -12,7 +13,7 @@ def extract_text_from_url(image_url: str, language: str) -> str:
     image.source.image_uri = image_url
     
     image_context = vision.ImageContext(
-        language_hints=[language[:2]]
+        language_hints=[language[:2].lower()]
     )
     
     response = client.text_detection(
@@ -35,6 +36,7 @@ def extract_date(text: str) -> str:
 
     patterns = [
         r'\d{2}/\d{2}/\d{4}',   # 12/10/2024
+        r'\d{1,2}/\d{1,2}/\d{4}',    # 2/28/2026
         r'\d{2}-\d{2}-\d{4}',   # 12-10-2024
         r'\d{2}\.\d{2}\.\d{4}', # 12.10.2024
         r'\d{4}/\d{2}/\d{2}',   # 2024/10/12
@@ -51,6 +53,9 @@ def extract_date(text: str) -> str:
 
 def extract_total(text: str) -> str:
     patterns = [
+        r'Grand\s*Total\s*[:\s]*([\d,]+\.?\d{0,2})',   # Grand Total  1,700.00
+        r'GRAND\s*TOTAL\s*[:\s]*([\d,]+\.?\d{0,2})',
+        r'Sub\s*Total\s*[:\s]*([\d,]+\.?\d{0,2})',
         r'TOTAL\s*:?\s*(\d+[\.,]\d{2})',     # TOTAL: 1250.00
         r'TOTAL\s*:?\s*Rs\.?\s*(\d+[\.,]\d{2})', # TOTAL: Rs. 1250.00
         r'Total\s*:?\s*(\d+[\.,]\d{2})',      # Total: 1250.00
@@ -61,13 +66,14 @@ def extract_total(text: str) -> str:
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
-            return match.group(1).replace(',', '.')
+            return match.group(1).replace(',', '')
     
     return ''
 
 def extract_items(lines: list) -> list:
     items = []
     
+
     # Pattern: find all numbers on the line, take the last one as price
     price_pattern = re.compile(r'(\d+[\.,]\d{2})')
     
@@ -76,10 +82,18 @@ def extract_items(lines: list) -> list:
         'cash', 'change', 'thank', 'welcome', 'tel', 'phone', 'address', 
         'date', 'receipt', 'invoice', 'bill', 'discount', 'party',
         'name', 'qty', 'rate', 'amount'
+
     ]
     
-    for line in lines:
-        line = line.strip()
+    # Pattern for a line that is ONLY numbers/spaces (qty rate amount line)
+    numbers_only = re.compile(r'^[\d\s\.,]+$')
+    
+    # Pattern for amount at end of line
+    amount_pattern = re.compile(r'([\d,]+\.\d{2})\s*$')
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
         
         if not line:
             continue
@@ -118,13 +132,18 @@ def parse_bill_data(ocr_text: str) -> dict:
     merchant = lines[0].strip() if lines else ''
     
     # Extract structured fields
-    bill_date = extract_date(ocr_text)
+    raw_date = extract_date(ocr_text)        # e.g. "2/28/2026"
+    bill_date = convert_to_iso_date(raw_date) # e.g. "2026-02-28"
     total_amount = extract_total(ocr_text)
     items = extract_items(lines)
     
+    # After building items list, if single item with wrong price, use total
+    if len(items) == 1 and total_amount:
+        items[0]['price'] = total_amount
+
     return {
         'merchant': merchant,
-        'bill_date': bill_date,
+        'bill_date': bill_date,         # now always YYYY-MM-DD or ''
         'total_amount': total_amount,
         'items': items
     }
@@ -174,3 +193,31 @@ def extract_warranty_period(text: str) -> int:
     
     # Default to 12 months if nothing found
     return 12
+
+
+def convert_to_iso_date(date_str: str) -> str:
+    """
+    Convert any detected date format to YYYY-MM-DD for Django.
+    Returns empty string if conversion fails.
+    """
+    if not date_str:
+        return ''
+    
+    # List of formats to try
+    formats = [
+        '%m/%d/%Y',   # 2/28/2026
+        '%d/%m/%Y',   # 28/02/2026
+        '%d-%m-%Y',   # 28-02-2026
+        '%d.%m.%Y',   # 28.02.2026
+        '%Y/%m/%d',   # 2026/02/28
+        '%b %d %Y',   # Feb 28 2026
+        '%d %b %Y',   # 28 Feb 2026
+    ]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str.strip(), fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+    
+    return ''  # if nothing matched, return empty so Django doesn't crash

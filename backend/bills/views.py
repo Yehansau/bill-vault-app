@@ -21,19 +21,15 @@ def upload_bill(request):
     """
     STEP 1 — POST /api/bills/upload/
 
-    Receives the image file from the app.
-    Uploads it to Firebase Storage, calculates a perceptual hash,
-    then checks if this user already uploaded the same bill.
+    Receives the image file from the app and uploads it to Firebase Storage.
+    No duplicate check here anymore — that happens after OCR in process_bill.
 
     Request: multipart/form-data
         image       — the image file
         upload_type — 'receipt' or 'warranty'
 
-    Response (no duplicate):
-        { is_duplicate: false, firebase_url, image_hash }
-
-    Response (duplicate found):
-        { is_duplicate: true, existing_bill: { ...full bill data } }
+    Response:
+        { firebase_url, image_hash }
     """
     image_file = request.FILES.get('image')
     if not image_file:
@@ -52,22 +48,8 @@ def upload_bill(request):
             image_file.name
         )
 
-        # Calculate perceptual hash of the image
-        image_hash = duplicate_service.calculate_image_hash(firebase_url)
-
-        # Check if this user already has a bill with a very similar image
-        existing_bill = duplicate_service.check_duplicate(request.user.id, image_hash)
-
-        if existing_bill:
-            return Response({
-                'is_duplicate': True,
-                'existing_bill': BillSerializer(existing_bill).data,
-            })
-
         return Response({
-            'is_duplicate': False,
             'firebase_url': firebase_url,
-            'image_hash': image_hash,
         })
 
     except Exception as e:
@@ -84,22 +66,27 @@ def process_bill(request):
     STEP 2 — POST /api/bills/process/
 
     Receives the firebase_url from step 1.
-    Runs OCR to extract text from the image, then classifies each item.
+    Runs OCR, classifies items, then checks for duplicates using the
+    extracted data (merchant + date + total + items).
 
     Request body (JSON):
         firebase_url  — the URL returned from upload_bill
         language      — 'english', 'sinhala', or 'tamil'
         upload_type   — 'receipt' or 'warranty'
 
-    Response for receipt:
+    Response (duplicate found):
+        { is_duplicate: true, existing_bill: { ...full bill data } }
+
+    Response for receipt (no duplicate):
         {
+            is_duplicate: false,
             merchant, bill_date, total_amount, language,
             items: [{ name, price, category, category_confidence,
                       warranty_detected, warranty_confidence }]
         }
 
     Response for warranty scan:
-        { item_name, merchant, warranty_period_months }
+        { is_duplicate: false, item_name, merchant, warranty_period_months }
     """
     firebase_url = request.data.get('firebase_url')
     language = request.data.get('language', 'english')
@@ -115,14 +102,18 @@ def process_bill(request):
         # Run OCR — send image URL to Google Vision, get back raw text
         ocr_text = ocr_service.extract_text_from_url(firebase_url, language)
 
-        # Standalone warranty card scan — parse warranty fields and return early
+        # Standalone warranty card scan — no duplicate check needed, return early
         if upload_type == 'warranty':
             parsed = ocr_service.parse_warranty_data(ocr_text)
-            return Response(parsed)
+            return Response({
+                'is_duplicate': False,
+                **parsed
+            })
 
-        # Receipt — parse bill fields, then classify each item
+        # Receipt — parse bill fields
         parsed = ocr_service.parse_bill_data(ocr_text)
 
+        # Classify each item
         classified_items = []
         for item in parsed.get('items', []):
             classification = classifier_service.classify_item(
@@ -131,7 +122,26 @@ def process_bill(request):
             )
             classified_items.append({**item, **classification})
 
+        # Check for duplicate using real extracted data + items list
+        # This is more reliable than image hashing — same bill scanned at
+        # different angles will still have the same merchant/date/total/items
+        duplicate = duplicate_service.check_duplicate_by_data(
+            user_id=request.user.id,
+            merchant=parsed.get('merchant', ''),
+            bill_date=parsed.get('bill_date'),
+            total_amount=parsed.get('total_amount'),
+            items=classified_items,
+        )
+
+        if duplicate:
+            return Response({
+                'is_duplicate': True,
+                'existing_bill': BillSerializer(duplicate).data,
+            })
+
+        # No duplicate — return all extracted and classified data
         return Response({
+            'is_duplicate': False,
             'merchant': parsed.get('merchant', ''),
             'bill_date': parsed.get('bill_date'),
             'total_amount': parsed.get('total_amount'),
@@ -158,7 +168,6 @@ def save_bill(request):
     Request body (JSON):
         {
             firebase_url:   str,
-            image_hash:     str,
             upload_type:    'receipt' | 'warranty',
             language:       str,
             merchant:       str,
@@ -201,7 +210,6 @@ def save_bill(request):
             bill_date=data.get('bill_date') or None,
             total_amount=data.get('total_amount') or None,
             firebase_image_url=data.get('firebase_url', ''),
-            image_hash=data.get('image_hash', ''),
             status='completed',
         )
 
@@ -324,7 +332,6 @@ def add_warranty(request, id):
     data = request.data
     bill_item = None
 
-    # Optionally link to a specific item on the bill
     bill_item_id = data.get('bill_item_id')
     if bill_item_id:
         try:

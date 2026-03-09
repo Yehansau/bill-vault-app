@@ -21,6 +21,7 @@ export default function ProcessingScreen() {
     existingBill,
     processedData,
     startUpload,
+    continueAsDuplicate,
   } = useBillUpload();
 
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -118,18 +119,16 @@ export default function ProcessingScreen() {
         visible={isDuplicate}
         existingBill={existingBill}
         onViewExisting={() => {
+          // Go to bill-review showing the already saved existing bill
           router.replace({
             pathname: "/upload/bill-review",
-            params: { processedData: JSON.stringify(existingBill) },
+            params: { processedData: JSON.stringify(existingBill), imageUri: existingBill?.firebase_image_url, uploadType, },
           });
         }}
         onUploadAnyway={() => {
-          // Re-trigger upload ignoring duplicate
-          startUpload(
-            imageUri,
-            language || "english",
-            uploadType || "receipt",
-          ).catch(console.error);
+          // Skip Step 1, jump straight to Step 2 using already uploaded image
+          // This is the fix — was wrongly calling startUpload before
+          continueAsDuplicate().catch(console.error);
         }}
         onCancel={() => router.back()}
       />
