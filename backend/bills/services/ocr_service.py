@@ -71,16 +71,18 @@ def extract_total(text: str) -> str:
     return ''
 
 def extract_items(lines: list) -> list:
-    """Find item lines from the receipt text.
-    Looks for lines with an item name followed by a price number.
-    """
     items = []
     
+
+    # Pattern: find all numbers on the line, take the last one as price
+    price_pattern = re.compile(r'(\d+[\.,]\d{2})')
+    
     skip_keywords = [
-        'total', 'subtotal', 'sub total', 'grand total', 'tax', 'vat', 'cash', 'change',
-        'thank', 'welcome', 'tel', 'phone', 'address', 'date', 'invoice',
-        'receipt', 'bill', 'discount', 'party', 'name', 'qty', 'rate',
-        'amount', 'system', 'www', 'no.'
+        'total', 'subtotal', 'sub total', 'grand total', 'tax', 'vat', 
+        'cash', 'change', 'thank', 'welcome', 'tel', 'phone', 'address', 
+        'date', 'receipt', 'invoice', 'bill', 'discount', 'party',
+        'name', 'qty', 'rate', 'amount'
+
     ]
     
     # Pattern for a line that is ONLY numbers/spaces (qty rate amount line)
@@ -94,50 +96,28 @@ def extract_items(lines: list) -> list:
         line = lines[i].strip()
         
         if not line:
-            i += 1
+            continue
+            
+        if any(keyword in line.lower() for keyword in skip_keywords):
             continue
         
-        # Skip lines that are purely numbers (e.g. "1700.00" standalone)
-        if re.match(r'^[\d\s\.,]+$', line):
-            i += 1
-            continue
-
-        # Skip header/footer lines
-        if any(kw in line.lower() for kw in skip_keywords):
-            i += 1
-            continue
+        # Find all numbers in the line
+        all_numbers = price_pattern.findall(line)
         
-        # Check if next line is a numbers-only line (qty rate amount)
-        # This means current line is the item name
-        if i + 1 < len(lines):
-            next_line = lines[i + 1].strip()
-            if numbers_only.match(next_line):
-                print(f"DEBUG numbers line: '{next_line}'")
-                # Extract the last number from next line as the amount
-                amounts = re.findall(r'[\d,]+\.\d{2}', next_line)
-                print(f"DEBUG amounts found: {amounts}")
-                if amounts:
-                    price = amounts[-1].replace(',', '')  # last number = amount
-                    items.append({
-                        'name': line,
-                        'price': price
-                    })
-                    i += 2  # skip both lines
-                    continue
-        
-        # Fallback: single line with name and price
-        single_line = re.compile(r'^(.+?)\s+([\d,]+\.\d{2})\s*$')
-        match = single_line.match(line)
-        if match:
-            name = match.group(1).strip()
-            price = match.group(2).replace(',', '')
-            if not any(kw in name.lower() for kw in skip_keywords):
-                items.append({'name': name, 'price': price})
-        
-        i += 1
+        if all_numbers:
+            # Last number is always the amount/price
+            price = all_numbers[-1].replace(',', '.')
+            
+            # Item name is everything before the first number
+            name = price_pattern.split(line)[0].strip()
+            
+            if name and float(price) > 0:
+                items.append({
+                    'name': name,
+                    'price': price
+                })
     
     return items
-
 def parse_bill_data(ocr_text: str) -> dict:
     """
     Parse raw OCR text from a receipt into structured data.
