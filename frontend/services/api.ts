@@ -5,14 +5,14 @@ import { SaveBillPayload } from "@/types/bill.types";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL = "http://10.162.58.193:8000/api";
+const API_BASE_URL = "http://10.79.228.69:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000,
+  timeout: 60000,
 });
 
 // Add token to requests automatically
@@ -84,7 +84,14 @@ export const billsAPI = {
     firebase_url: string;
     language: string;
     upload_type: string;
-  }) => api.post("/bills/process/", data),
+  }) =>
+    api.post("/bills/process/", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // Authorization header is automatically added by your interceptor
+      },
+    }),
 
   // Step 3: Save final reviewed bill to database
   save: (data: SaveBillPayload) => api.post("/bills/save/", data),

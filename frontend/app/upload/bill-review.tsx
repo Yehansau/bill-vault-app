@@ -5,8 +5,8 @@ import noWarranty from "@/assets/images/noWarranty.png";
 import scanIcon from "@/assets/images/scanIcon.png";
 import { CustomButton } from "@/components/ui";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Image,
   Pressable,
@@ -19,6 +19,7 @@ import {
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import DropDownPicker from "react-native-dropdown-picker";
 import ItemDetails from "@/components/upload/ItemDetails";
+import { billsAPI } from "@/services/api";
 
 // Define the type for the item state (dictionary to hold warranty and editability status for each item)
 type ItemState = {
@@ -29,76 +30,119 @@ type ItemState = {
 };
 
 const OCRScreen = () => {
-  // Local state for the receipt details (merchant, total amount, date) and item list
-  const [merchant, setMerchant] = useState("SuperMart Grocery");
-  const [total, setTotal] = useState("Rs. 1696.67");
-  const [date, setDate] = useState(new Date(2024, 12, 10));
+  const { firebase_url } = useLocalSearchParams();
+
+  const [merchant, setMerchant] = useState("");
+  const [total, setTotal] = useState("");
+  const [date, setDate] = useState(new Date());
+
+  const [data, setData] = useState<any[]>([]);
+  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [show, setShow] = useState(false);
 
-  // Local state for the selected item ID, action sheet visibility
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("english");
+
   const actionSheetRef = useRef<ActionSheetRef>(null);
   const [actionItemId, setActionItemId] = useState<string | null>(null);
   const router = useRouter();
 
-  // Local state for the item states (warranty and editability), and the extracted data list
-  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({
-    "1": {
-      isEditable: false,
-      warranty: false,
-      confirmed: false,
-      expiryDate: new Date(2025, 12, 10),
-    },
-    "2": {
-      isEditable: false,
-      warranty: true,
-      confirmed: false,
-      expiryDate: new Date(2025, 12, 10),
-    },
-    "3": {
-      isEditable: false,
-      warranty: false,
-      confirmed: false,
-      expiryDate: new Date(2025, 12, 10),
-    },
-    "4": {
-      isEditable: false,
-      warranty: false,
-      confirmed: false,
-      expiryDate: new Date(2025, 12, 10),
-    },
-  });
-
-  const [data, setData] = useState([
-    {
-      id: "1",
-      name: "Bananas",
-      size: "300g",
-      price: "Rs.96.00",
-      category: "Food & Dining",
-    },
-    {
-      id: "2",
-      name: "Panasonic Batteries",
-      size: "4B-Aa",
-      price: "Rs.650.00",
-      category: "Electronics",
-    },
-    {
-      id: "3",
-      name: "Shampoo",
-      size: "180ml",
-      price: "Rs.750.00",
-      category: "Personal Care",
-    },
-    {
-      id: "4",
-      name: "Mixed Vegetables",
-      size: "250g",
-      price: "Rs.200.67",
-      category: "Food & Dining",
-    },
+  // Define the language options for the dropdown
+  const [languageItems, setLanguageItems] = useState([
+    { label: "English", value: "english" },
+    { label: "Tamil", value: "tamil" },
+    { label: "Sinhala", value: "sinhala" },
   ]);
+
+  useEffect(() => {
+    if (!firebase_url) return;
+
+    (async () => {
+      try {
+        const response = await billsAPI.process({
+          firebase_url: firebase_url as string,
+          language: value,
+          upload_type: "receipt",
+        });
+
+        const result = response.data;
+
+        if (result.is_duplicate) {
+          alert("This receipt was already uploaded.");
+          return;
+        }
+
+        // Fill UI fields
+        setMerchant(result.merchant);
+        setTotal(`Rs. ${result.total_amount}`);
+        setDate(result.bill_date ? new Date(result.bill_date) : new Date());
+
+        // Convert backend items → UI items
+        const formattedItems = result.items.map((item: any, index: number) => ({
+          id: String(index + 1),
+          name: item.name,
+          size: "",
+          price: `Rs.${item.price}`,
+          category: item.category,
+          category_confidence: item.category_confidence,
+          warranty_detected: item.warranty_detected,
+          warranty_confidence: item.warranty_confidence,
+        }));
+
+        setData(formattedItems);
+
+        // initialize state for items
+        const states: Record<string, ItemState> = {};
+        formattedItems.forEach((item: any) => {
+          states[item.id] = {
+            isEditable: false,
+            warranty: item.warranty_detected,
+            confirmed: false,
+          };
+        });
+
+        setItemStates(states);
+      } catch (error) {
+        console.log("Process error:", error);
+      }
+    })();
+  }, [firebase_url, value]);
+
+  const saveBill = async () => {
+    try {
+      const payload = {
+        firebase_url:
+          typeof firebase_url === "string"
+            ? firebase_url
+            : Array.isArray(firebase_url)
+              ? firebase_url[0]
+              : "",
+        upload_type: "receipt" as const,
+        language: value,
+        merchant: merchant,
+        bill_date: date.toISOString().split("T")[0],
+        total_amount: parseFloat(total.replace("Rs.", "").trim()),
+        items: data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: parseFloat(item.price.replace("Rs.", "")),
+          category: item.category,
+          category_confidence: item.category_confidence || 0.8,
+          warranty_detected: itemStates[item.id]?.warranty || false,
+          warranty_confidence: item.warranty_confidence || 0,
+        })),
+      };
+
+      await billsAPI.save(payload);
+
+      router.replace("/upload/video");
+    } catch (error) {
+      console.log("Save error:", error);
+      alert("Failed to save bill.");
+    }
+  };
 
   // Function to remove an item from the data list by ID
   const removeItem = (id: string) => {
@@ -116,17 +160,6 @@ const OCRScreen = () => {
 
   // Format the receipt date for display
   const formattedDate = `${date.toLocaleDateString("en-US", { month: "long" })} ${date.getDate()}, ${date.getFullYear()}`;
-
-  // Local state for the language selection dropdown in the receipt details section
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("english");
-
-  // Define the language options for the dropdown
-  const [languageItems, setLanguageItems] = useState([
-    { label: "English", value: "english" },
-    { label: "Tamil", value: "tamil" },
-    { label: "Sinhala", value: "sinhala" },
-  ]);
 
   // Handler to open the action sheet for a specific item ID when the "+Add Warranty" button is pressed
   const onOpenActionSheet = (id: string) => {
@@ -176,9 +209,7 @@ const OCRScreen = () => {
           <View className="border border-gray-300 rounded-lg h-auto w-full py-3 items-center shadow-xl bg-white mb-5">
             <Text className="text-md font-bold mb-3">Scanned Document</Text>
             <Image
-              source={{
-                uri: "file:///data/user/0/host.exp.exponent/cache/Camera/11bebfb2-2945-407a-9824-625db3d2f588.jpg",
-              }}
+              source={{ uri: firebase_url as string }}
               className="size-[200px]"
             />
           </View>
@@ -334,10 +365,7 @@ const OCRScreen = () => {
           </Pressable>
 
           <View className="flex-1 mt-10">
-            <CustomButton
-              title="Save to BillVault"
-              onPress={() => router.push("/upload/video")}
-            />
+            <CustomButton title="Save to BillVault" onPress={saveBill} />
           </View>
         </View>
       </ScrollView>

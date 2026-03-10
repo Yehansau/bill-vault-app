@@ -17,85 +17,95 @@ export const useBillUpload = () => {
   const startUpload = async (
     imageUri: string,
     language: string,
-    uploadType: string
+    uploadType: string,
   ) => {
-    setError(null);
-    setProcessedData(null);
-    setIsDuplicate(false);
-    setExistingBill(null);
+    try {
+      setError(null);
+      setProcessedData(null);
+      setIsDuplicate(false);
+      setExistingBill(null);
 
-    // Save language + uploadType so continueAsDuplicate can use them
-    setSavedLanguage(language);
-    setSavedUploadType(uploadType);
+      setSavedLanguage(language.toLowerCase());
+      setSavedUploadType(uploadType.toLowerCase());
 
-    // ── STEP 1: Upload image to Firebase (0% → 30%) ──────────────────
-    setStatusMessage("Uploading image...");
-    setProgress(20);
+      // ── STEP 1: Upload image to Firebase (0% → 30%) ─────────────
+      setStatusMessage("Uploading image...");
+      setProgress(20);
 
-    const formData = new FormData();
-    formData.append("image", {
-      uri: imageUri,
-      type: "image/jpeg",
-      name: "bill.jpg",
-    } as any);
-    formData.append("upload_type", uploadType);
+      const formData = new FormData();
+      formData.append("image", {
+        uri: imageUri,
+        type: "image/jpeg",
+        name: "bill.jpg",
+      } as any);
+      formData.append("upload_type", uploadType.toLowerCase());
 
-    console.log("STEP 1: Uploading image to Firebase...");
-    const uploadRes = await billsAPI.upload(formData);
-    console.log("STEP 1 response:", JSON.stringify(uploadRes?.data));
-    setProgress(30);
+      console.log("STEP 1: Uploading image to Firebase...");
+      const uploadRes = await billsAPI.upload(formData);
+      console.log("STEP 1 response:", JSON.stringify(uploadRes?.data));
+      setProgress(30);
 
-    const firebaseUrl = uploadRes?.data?.firebase_url;
+      const firebaseUrl = uploadRes?.data?.firebase_url;
+      if (!firebaseUrl)
+        throw new Error("Firebase upload failed — no URL returned");
 
-    if (!firebaseUrl) {
-      throw new Error("Firebase upload failed — no URL returned from backend");
+      setSavedFirebaseUrl(firebaseUrl);
+
+      // ── STEP 2: OCR + classify + duplicate check (30% → 100%) ─────
+      await runProcessStep(
+        firebaseUrl,
+        language.toLowerCase(),
+        uploadType.toLowerCase(),
+      );
+    } catch (err) {
+      setError("Upload failed. Please try again.");
+      throw err;
     }
-
-    // Save firebase_url so continueAsDuplicate can reuse it
-    setSavedFirebaseUrl(firebaseUrl);
-
-    // ── STEP 2: OCR + classify + duplicate check (30% → 100%) ────────
-    await runProcessStep(firebaseUrl, language, uploadType);
   };
 
-  // Shared Step 2 logic — used by both startUpload and continueAsDuplicate
   const runProcessStep = async (
     firebaseUrl: string,
     language: string,
-    uploadType: string
+    uploadType: string,
   ) => {
-    setStatusMessage("Extracting text...");
-    setProgress(50);
+    try {
+      setStatusMessage("Extracting text...");
+      setProgress(50);
 
-    console.log("STEP 2: Processing image...", { firebaseUrl, language, uploadType });
-    const processRes = await billsAPI.process({
-      firebase_url: firebaseUrl,
-      language,
-      upload_type: uploadType,
-    });
-    console.log("STEP 2 response:", JSON.stringify(processRes?.data));
+      console.log("STEP 2: Processing image...", {
+        firebaseUrl,
+        language,
+        uploadType,
+      });
 
-    setProgress(70);
-    setStatusMessage("Detecting items...");
-    setProgress(90);
-    setStatusMessage("Analyzing warranties...");
+      const processRes = await billsAPI.process({
+        firebase_url: firebaseUrl, // <-- snake_case required by backend
+        language,
+        upload_type: uploadType, // <-- snake_case required by backend
+      });
 
-    // Backend now returns is_duplicate after comparing extracted data
-    if (processRes.data.is_duplicate) {
-      setIsDuplicate(true);
-      setExistingBill(processRes.data.existing_bill);
-      return; // stop here — DuplicateModal will show
+      console.log("STEP 2 response:", JSON.stringify(processRes?.data));
+
+      setProgress(70);
+      setStatusMessage("Detecting items...");
+      setProgress(90);
+      setStatusMessage("Analyzing warranties...");
+
+      if (processRes.data.is_duplicate) {
+        setIsDuplicate(true);
+        setExistingBill(processRes.data.existing_bill);
+        return; // stop here — DuplicateModal will show
+      }
+
+      setProgress(100);
+      setStatusMessage("Almost done...");
+      setProcessedData(processRes.data);
+    } catch (err) {
+      setError("Processing failed. Please try again.");
+      throw err;
     }
-
-    // All good — set processed data, processing.tsx will navigate
-    setProgress(100);
-    setStatusMessage("Almost done...");
-    setProcessedData(processRes.data);
   };
 
-  // Called when user taps "Upload Anyway" in DuplicateModal.
-  // Skips Step 1 (image already uploaded) and reruns Step 2
-  // with a flag to skip the duplicate check on the backend.
   const continueAsDuplicate = async () => {
     setIsDuplicate(false);
     setExistingBill(null);

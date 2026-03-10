@@ -42,7 +42,7 @@ export default function ProcessingScreen() {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
-  }, [progress]);
+  }, [progress, progressAnim]);
 
   // Rotating tick marks animation
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function ProcessingScreen() {
     });
 
     return () => progressAnim.removeListener(listener);
-  }, []);
+  }, [progressAnim, rotateAnim]);
 
   // Start upload when screen mounts
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function ProcessingScreen() {
         router.back();
       });
     }
-  }, [imageUri]);
+  }, [imageUri, language, uploadType, startUpload, uploadStarted]);
 
   // Navigate when processing is complete
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function ProcessingScreen() {
         });
       }, 1000);
     }
-  }, [processedData]);
+  }, [processedData, imageUri, uploadType]);
 
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 100],
