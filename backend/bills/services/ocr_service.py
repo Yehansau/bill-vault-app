@@ -94,6 +94,7 @@ def extract_items(lines: list) -> list:
     i = 0
     while i < len(lines):
         line = lines[i].strip()
+        i += 1
         
         if not line:
             continue
