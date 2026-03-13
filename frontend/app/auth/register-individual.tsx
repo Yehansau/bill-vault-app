@@ -131,7 +131,7 @@ const RegisterScreen = () => {
       });
 
       if (response.data?.token) {
-        await AsyncStorage.setItem("token", response.data.token);
+        await AsyncStorage.setItem("token", response.data.access);
       }
 
       // Save the name the user typed so home screen can show "Hi [name]!"
