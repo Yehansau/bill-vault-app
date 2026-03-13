@@ -30,7 +30,8 @@ type ItemState = {
 };
 
 const OCRScreen = () => {
-  const { firebase_url } = useLocalSearchParams();
+  const { processedData, imageUri, uploadType } = useLocalSearchParams();
+  const parsedData = processedData ? JSON.parse(processedData as string) : null;
 
   const [merchant, setMerchant] = useState("");
   const [total, setTotal] = useState("");
@@ -57,68 +58,47 @@ const OCRScreen = () => {
   ]);
 
   useEffect(() => {
-    if (!firebase_url) return;
+    if (!parsedData) return;
 
-    (async () => {
-      try {
-        const response = await billsAPI.process({
-          firebase_url: firebase_url as string,
-          language: value,
-          upload_type: "receipt",
-        });
+    console.log("Received OCR data:", parsedData);
 
-        const result = response.data;
+    // Fill UI fields
+    setMerchant(parsedData.merchant);
+    setTotal(`Rs. ${parsedData.total_amount}`);
+    setDate(parsedData.bill_date ? new Date(parsedData.bill_date) : new Date());
 
-        if (result.is_duplicate) {
-          alert("This receipt was already uploaded.");
-          return;
-        }
+    // Convert backend items → UI items
+    const formattedItems = parsedData.items.map((item: any, index: number) => ({
+      id: String(index + 1),
+      name: item.name,
+      size: "",
+      price: `Rs.${item.price}`,
+      category: item.category,
+      category_confidence: item.category_confidence,
+      warranty_detected: item.warranty_detected,
+      warranty_confidence: item.warranty_confidence,
+    }));
 
-        // Fill UI fields
-        setMerchant(result.merchant);
-        setTotal(`Rs. ${result.total_amount}`);
-        setDate(result.bill_date ? new Date(result.bill_date) : new Date());
+    setData(formattedItems);
 
-        // Convert backend items → UI items
-        const formattedItems = result.items.map((item: any, index: number) => ({
-          id: String(index + 1),
-          name: item.name,
-          size: "",
-          price: `Rs.${item.price}`,
-          category: item.category,
-          category_confidence: item.category_confidence,
-          warranty_detected: item.warranty_detected,
-          warranty_confidence: item.warranty_confidence,
-        }));
+    // initialize state for items
+    const states: Record<string, ItemState> = {};
+    formattedItems.forEach((item: any) => {
+      states[item.id] = {
+        isEditable: false,
+        warranty: item.warranty_detected,
+        confirmed: false,
+      };
+    });
 
-        setData(formattedItems);
-
-        // initialize state for items
-        const states: Record<string, ItemState> = {};
-        formattedItems.forEach((item: any) => {
-          states[item.id] = {
-            isEditable: false,
-            warranty: item.warranty_detected,
-            confirmed: false,
-          };
-        });
-
-        setItemStates(states);
-      } catch (error) {
-        console.log("Process error:", error);
-      }
-    })();
-  }, [firebase_url, value]);
+    setItemStates(states);
+  }, [processedData]);
 
   const saveBill = async () => {
     try {
       const payload = {
-        firebase_url:
-          typeof firebase_url === "string"
-            ? firebase_url
-            : Array.isArray(firebase_url)
-              ? firebase_url[0]
-              : "",
+        imageUri: imageUri,
+        firebase_url: parsedData?.firebase_url || "",
         upload_type: "receipt" as const,
         language: value,
         merchant: merchant,
@@ -209,7 +189,7 @@ const OCRScreen = () => {
           <View className="border border-gray-300 rounded-lg h-auto w-full py-3 items-center shadow-xl bg-white mb-5">
             <Text className="text-md font-bold mb-3">Scanned Document</Text>
             <Image
-              source={{ uri: firebase_url as string }}
+              source={{ uri: imageUri as string }}
               className="size-[200px]"
             />
           </View>
