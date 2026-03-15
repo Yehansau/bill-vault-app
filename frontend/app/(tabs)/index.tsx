@@ -56,7 +56,7 @@ export default function App() {
   const formattedDate = `${day}${getOrdinal(day)} ${month}`;
 
   return (
-    <View className="flex-1 flex-col bg-white px-7 pt-14">
+    <View className="flex-1 flex-col bg-white px-5 pt-14">
       <View className="flex-row justify-between">
         <View className="flex-col">
           <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>

@@ -177,7 +177,7 @@ const OCRScreen = () => {
     <View className="flex-1 bg-white">
       <ScrollView
         className="flex-1"
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           minHeight: "100%",
           paddingBottom: 100,

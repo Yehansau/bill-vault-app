@@ -1,4 +1,4 @@
-import { Tabs, usePathname } from "expo-router";
+import { Tabs, usePathname, Stack } from "expo-router";
 import React, { useState } from "react";
 
 import analytics from "@/assets/images/icons/analytics.png";
@@ -70,7 +70,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="analytics"
           options={{
-            headerShown: false,
+            headerShown: true,
+            headerTitle: "Analytics & Insights",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Analytics",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={analytics} />
