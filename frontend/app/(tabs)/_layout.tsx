@@ -110,7 +110,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            headerShown: false,
+            headerShown: true,
+            headerTitle: "Profile",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Profile",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={profile} />
