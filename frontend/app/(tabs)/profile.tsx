@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Image,
   ScrollView,
@@ -95,12 +97,29 @@ const AchievementCard = ({
   </View>
 );
 
+const handleLogout = async () => {
+  await AsyncStorage.clear();
+  router.push("/auth/login");
+};
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 const ProfileScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"home" | "search" | "add" | "bell" | "person">("person");
 
-  
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem("full_name").then((name) =>
+      setUserName(name || "Your name"),
+    );
+
+    AsyncStorage.getItem("email").then((email) =>
+      setEmail(email || "Your email"),
+    );
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
 
@@ -115,8 +134,8 @@ const ProfileScreen: React.FC = () => {
               <Ionicons name="person" size={44} color={COLORS.white} />
             </View>
           </View>
-          <Text style={styles.userName}>John Doe</Text>
-          <Text style={styles.userEmail}>john.doe@email.com</Text>
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
 
           <TouchableOpacity style={styles.accountTypeBadge}>
             <Ionicons name="person-circle-outline" size={14} color={COLORS.white} style={{ marginRight: 4 }} />
@@ -202,6 +221,17 @@ const ProfileScreen: React.FC = () => {
             </View>
           ))}
         </LinearGradient>
+
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
+        <Text style={styles.logoutText}>Log out</Text>
+        </TouchableOpacity>
+        
+        {/*<TouchableOpacity onPress={() => router.push("/")}><Text>logout</Text></TouchableOpacity>*/}
+
       </ScrollView>
 
       
@@ -525,6 +555,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
+  },
+  logoutButton: {
+  backgroundColor: "#A78BCA",
+  borderRadius: 14,
+  paddingVertical: 15,
+  alignItems: "center",
+  marginTop: 1,
+  marginBottom: 8,
+  },
+  logoutText: {
+    color: "#000000",
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
 });
 

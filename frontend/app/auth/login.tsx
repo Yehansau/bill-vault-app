@@ -28,6 +28,9 @@ const LoginScreen = () => {
       });
       const token = response.data.access;
       if (token) await AsyncStorage.setItem("token", token);
+      if (email) {
+        await AsyncStorage.setItem("email", email);
+      }
       router.push("/(tabs)");
     } catch (error: any) {
       Alert.alert("Login Failed", "Invalid email or password");
