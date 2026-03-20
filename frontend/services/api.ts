@@ -5,7 +5,7 @@ import { SaveBillPayload } from "@/types/bill.types";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL = "http://10.79.228.58:8000/api";
+const API_BASE_URL = "http://192.168.8.106:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -113,4 +113,9 @@ export const warrantiesAPI = {
 
   // Get single warranty
   detail: (id: string) => api.get(`/warranties/${id}/`),
+};
+
+export const analyticsAPI = {
+  // Get analytics data
+  get: () => api.get("/analytics/"),
 };
