@@ -169,6 +169,19 @@ and `:latest`.
 
 The default stack runs Postgres in Swarm. To use **Supabase / Cloud SQL** instead, you would remove or replace the `db` service in [`deploy/docker-stack.yml`](deploy/docker-stack.yml) and supply `DATABASE_URL` yourself (today’s workflow expects in-stack DB; adjust the workflow if you need a hosted URL only).
 
+## SAST (static analysis)
+
+Workflow: [`.github/workflows/sast.yml`](.github/workflows/sast.yml). Suited for **private repos on GitHub Free** (no paid add-on).
+
+| Job | What it does |
+|-----|----------------|
+| **Bandit** | Scans Python under `billvault/`, `authentication/`, `bills/` for common security issues (**high** severity only by default). |
+| **pip-audit** | Reports known vulnerabilities in packages listed in [`backend/requirements.txt`](backend/requirements.txt). |
+
+**CodeQL** (GitHub Code Scanning) is **not** in this workflow: for **private** repositories it generally requires **GitHub Advanced Security**. It is **free** for **public** repos if you ever open-source the project and add a CodeQL workflow then.
+
+Runs on **push/PR** to `main` when `backend/` or this workflow changes, plus **weekly** and **workflow_dispatch**.
+
 ## Contributing
 
 1. Create feature branch: `git checkout -b feature/your-feature`
