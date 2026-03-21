@@ -15,6 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
 } from "react-native";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -32,6 +33,7 @@ type ItemState = {
 const OCRScreen = () => {
   const { processedData, imageUri, uploadType } = useLocalSearchParams();
   const parsedData = processedData ? JSON.parse(processedData as string) : null;
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
   const [merchant, setMerchant] = useState("");
   const [total, setTotal] = useState("");
@@ -188,11 +190,25 @@ const OCRScreen = () => {
           <Text className="text-lg font-bold">Scan Complete!</Text>
           <View className="border border-gray-300 rounded-lg h-auto w-full py-3 items-center shadow-xl bg-white mb-5">
             <Text className="text-md font-bold mb-3">Scanned Document</Text>
-            <Image
-              source={{ uri: imageUri as string }}
-              className="size-[200px]"
-            />
+            <TouchableOpacity onPress={() => setIsPreviewVisible(true)}>
+              <Image
+                source={{ uri: imageUri as string }}
+                className="size-[200px]"
+              />
+            </TouchableOpacity>
           </View>
+          <Modal visible={isPreviewVisible} transparent={true}>
+            <Pressable
+              className="flex-1 bg-black/80 justify-center items-center"
+              onPress={() => setIsPreviewVisible(false)}
+            >
+              <Image
+                source={{ uri: imageUri as string }}
+                className="w-full h-[80%]"
+                resizeMode="contain"
+              />
+            </Pressable>
+          </Modal>
 
           <View className="border border-gray-300 rounded-lg h-auto w-full py-3 items-center shadow-xl px-4 bg-white mb-5">
             <Text className="text-md font-bold mb-10">

@@ -1,7 +1,14 @@
 import { CustomButton, CustomInput } from "@/components/ui";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import logo from "../../assets/images/LogoPicture.png";
 import emailImage from "../../assets/images/icons/emailImage.png";
 import facebookImage from "../../assets/images/icons/facebookImage.png";
@@ -31,6 +38,12 @@ const LoginScreen = () => {
       if (email) {
         await AsyncStorage.setItem("email", email);
       }
+      if (response.data.user["full_name"]) {
+        await AsyncStorage.setItem(
+          "full_name",
+          response.data.user["full_name"],
+        );
+      }
       router.push("/(tabs)");
     } catch (error: any) {
       Alert.alert("Login Failed", "Invalid email or password");
@@ -40,10 +53,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <LinearGradient
-      colors={["#944ABC", "#3B0856"]}
-      style={styles.container}
-    >
+    <LinearGradient colors={["#944ABC", "#3B0856"]} style={styles.container}>
       {/* Header Section */}
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} />
@@ -60,7 +70,7 @@ const LoginScreen = () => {
             onChangeText={setEmail}
           />
         </View>
-        
+
         <CustomInput
           placeholder="Password"
           value={password}
@@ -68,7 +78,10 @@ const LoginScreen = () => {
           secureTextEntry={true}
         />
         
-        <TouchableOpacity style={styles.forgotContainer} onPress={() => router.push("/auth/reset-password" as any)}>
+        <TouchableOpacity
+          style={styles.forgotContainer}
+          onPress={() => router.push("/auth/reset-password" as any)}
+        >
           <Text style={styles.forgotText}>Forgot password</Text>
         </TouchableOpacity>
 
@@ -140,7 +153,7 @@ const styles = StyleSheet.create({
   forgotContainer: {
     alignSelf: "flex-end",
     marginTop: -10,
-    marginRight: 10
+    marginRight: 10,
   },
   forgotText: {
     fontSize: 12,
