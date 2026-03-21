@@ -23,7 +23,7 @@ python -m pip install --upgrade pip
 
 pip install -r requirements.txt
 
-# 5. Run migrations
+# 5. Run migrations(to updates the commands u did to the backend)
 
 python manage.py migrate
 

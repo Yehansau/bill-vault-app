@@ -10,6 +10,7 @@ from .serializers import (
 )
 from .services import firebase_service, duplicate_service, ocr_service, classifier_service
 
+from datetime import datetime
 
 # ──────────────────────────────────────────────────────
 # UPLOAD FLOW — 3 steps called in sequence by the app
@@ -339,12 +340,15 @@ def add_warranty(request, id):
         except BillItem.DoesNotExist:
             return Response({'error': 'BillItem not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    purchase_date_str = request.data.get('purchase_date')
+    purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
+
     warranty = Warranty.objects.create(
         bill=bill,
         bill_item=bill_item,
         item_name=data.get('item_name', ''),
         merchant=data.get('merchant', bill.merchant),
-        purchase_date=data.get('purchase_date') or None,
+        purchase_date = purchase_date,
         warranty_period_months=data.get('warranty_period_months', 12),
         notes=data.get('notes', ''),
     )
