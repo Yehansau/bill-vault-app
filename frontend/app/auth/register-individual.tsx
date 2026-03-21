@@ -131,10 +131,19 @@ const RegisterScreen = () => {
       });
 
       if (response.data?.token) {
-        await AsyncStorage.setItem("token", response.data.token);
+        await AsyncStorage.setItem("token", response.data.access);
       }
 
-      Alert.alert("Success 🎉", "Your account has been created");
+      // Save the name the user typed so home screen can show "Hi [name]!"
+      if (name) {
+        await AsyncStorage.setItem("full_name", name);
+      }
+
+      if (email) {
+        await AsyncStorage.setItem("email", email);
+      }
+
+      // Alert.alert("Success 🎉", "Your account has been created");
       router.push("/auth/registration-success");
     } catch {
       Alert.alert("Error", "Something went wrong. Try again.");

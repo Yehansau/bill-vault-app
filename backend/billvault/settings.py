@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
+
 # Load environment variables
 load_dotenv()
 
@@ -87,6 +88,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'billvault.wsgi.application'
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.getenv('DATABASE_URL'),
+#         conn_max_age=0  # Set to 0 for Transaction Pooling!
+#     )
+# }
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -194,3 +201,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 AUTH_USER_MODEL = 'authentication.User'
 # Custom user model
+
+
+import firebase_admin
+from firebase_admin import credentials
+
+FIREBASE_CREDENTIALS_PATH = os.getenv('FIREBASE_CREDENTIALS_JSON')
+FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
+
+# Only initialize if credentials file is actually provided
+if FIREBASE_CREDENTIALS_PATH and not firebase_admin._apps:
+    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    firebase_admin.initialize_app(cred, {
+        'storageBucket': FIREBASE_STORAGE_BUCKET
+    })

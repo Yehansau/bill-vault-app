@@ -19,7 +19,11 @@
         "foregroundImage": "./assets/images/LogoPicture.png",
         "backgroundColor": "#6C63FF"
       },
-      "package": "com.billvault.app"
+      "package": "com.billvault.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -45,11 +49,18 @@
           "cameraPermission": "Allow this app to access your camera"
         }
       ],
-      "expo-video"
+      "expo-video",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6cd04ece-7ac9-468f-81ce-fce5e43cd116"
+      }
     }
   }
 }

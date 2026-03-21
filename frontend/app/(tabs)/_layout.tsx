@@ -1,19 +1,22 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs, usePathname, Stack } from "expo-router";
+import React, { useState } from "react";
 
 import analytics from "@/assets/images/icons/analytics.png";
 import files from "@/assets/images/icons/files.png";
 import home from "@/assets/images/icons/home.png";
 import iconBg from "@/assets/images/icons/iconBg.png";
 import profile from "@/assets/images/icons/profile.png";
-import upload from "@/assets/images/icons/upload.png";
-import { Image, ImageBackground } from "react-native";
+import { Image, ImageBackground, View } from "react-native";
+import UploadFAB from "@/components/home/UploadFAB";
 
 export default function TabLayout() {
-  const TabIcon = ({ focused, icon }: any) => {
-    const [height, setHeight] = React.useState(0);
+  const [fabOpen, setFabOpen] = useState(false);
 
-    if (focused) {
+  const TabIcon = ({ focused, icon }: { focused: boolean; icon: any }) => {
+    // When FAB is open, show all tab icons flat (unfocused) — no highlighted tab
+    const showFocused = focused && !fabOpen;
+
+    if (showFocused) {
       return (
         <ImageBackground
           source={iconBg}
@@ -26,13 +29,15 @@ export default function TabLayout() {
           <Image source={icon} className="w-7 h-7 mb-2" />
         </ImageBackground>
       );
-    } else {
-      return <Image source={icon} className="size-8" />;
     }
+    return <Image source={icon} className="size-8" />;
   };
 
+  const pathname = usePathname();
+  const isCamera = pathname === "/(tabs)/camera" || pathname === "/camera";
+
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -65,21 +70,30 @@ export default function TabLayout() {
         <Tabs.Screen
           name="analytics"
           options={{
-            headerShown: false,
+            headerShown: true,
+            headerTitle: "Analytics & Insights",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Analytics",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={analytics} />
             ),
           }}
         />
+        {/*
+          Camera tab — renders an invisible placeholder.
+          The real button is the UploadFAB overlay below.
+          tabBarButton: () => null hides the pressable area so the FAB handles all taps.
+        */}
         <Tabs.Screen
-          name="upload"
+          name="camera"
           options={{
             headerShown: false,
-            title: "Upload",
-            tabBarIcon: ({ focused }) => (
-              <Image source={upload} className="size-10" />
-            ),
+            title: "Camera",
+            tabBarIcon: () => <View style={{ width: 44, height: 44 }} />,
+            tabBarButton: () => <View style={{ flex: 1 }} />,
             tabBarStyle: { display: "none" },
           }}
         />
@@ -96,7 +110,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            headerShown: false,
+            headerShown: true,
+            headerTitle: "Profile",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Profile",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={profile} />
@@ -104,6 +123,9 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </>
+
+      {/* UploadFAB — hidden on camera screen */}
+      {!isCamera && <UploadFAB onOpenChange={setFabOpen} />}
+    </View>
   );
 }
