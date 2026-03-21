@@ -1,0 +1,78 @@
+# Example: nginx on the VM proxying path prefixes to BillVault (Docker Swarm on 127.0.0.1:8000).
+# Django routes: /api/*, /admin/, /static/, /media/ (see backend/billvault/urls.py).
+#
+# Install: sudo cp nginx-billvault.conf.example /etc/nginx/conf.d/billvault.conf
+#          sudo nginx -t && sudo systemctl reload nginx
+#
+# Stack must publish port 8000 on the host (default in deploy/docker-stack.yml).
+# Rocky/RHEL + SELinux: if nginx returns 502 and error.log shows
+#   "connect() to 127.0.0.1:8000 failed (13: Permission denied)"
+# run: sudo setsebool -P httpd_can_network_connect 1
+#
+# Set GitHub variables: ALLOWED_HOSTS=bill-vault.com,www.bill-vault.com
+#                         CSRF_TRUSTED_ORIGINS=https://bill-vault.com,https://www.bill-vault.com
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name bill-vault.com www.bill-vault.com;
+
+    root /var/www/bill-vault;
+    index index.html index.htm index.php;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # --- BillVault Django API (Gunicorn in Docker) ---
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+        client_max_body_size 25M;
+    }
+
+    location /admin/ {
+        proxy_pass http://127.0.0.1:8000/admin/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
+    location /static/ {
+        proxy_pass http://127.0.0.1:8000/static/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /media/ {
+        proxy_pass http://127.0.0.1:8000/media/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 25M;
+    }
+
+    # --- Static marketing site ---
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/bill-vault.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bill-vault.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    listen 80;
+    server_name bill-vault.com www.bill-vault.com;
+    return 301 https://$server_name$request_uri;
+}

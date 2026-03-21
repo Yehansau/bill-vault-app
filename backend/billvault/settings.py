@@ -41,6 +41,17 @@ ALLOWED_HOSTS = (
     else [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
 )
 
+# Reverse proxy (nginx TLS termination)
+_behind_proxy = os.getenv('BEHIND_REVERSE_PROXY', '').strip().lower() in ('1', 'true', 'yes')
+if _behind_proxy:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+
+_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in _csrf_origins.split(',') if o.strip()
+] if _csrf_origins else []
+
 
 # Application definition
 

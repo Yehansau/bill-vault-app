@@ -122,6 +122,18 @@ Configure everything under **GitHub → Repository → Settings → Secrets and 
 | `ALLOWED_HOSTS` *(optional)* | `api.example.com,34.60.104.80` | Comma-separated Django `ALLOWED_HOSTS` | Your API hostname and/or IP clients use. If unset, the workflow defaults to `*`. |
 | `CORS_ALLOW_ALL_ORIGINS` *(optional)* | `true` or `false` | Passed into the stack for CORS | If unset, defaults to `true` for easier mobile testing; set `false` and use `CORS_ALLOWED_ORIGINS` via app settings when hardened. |
 | `FIREBASE_STORAGE_BUCKET` *(optional)* | `your-app.appspot.com` | Firebase Storage bucket | Firebase console → Project settings / Storage. |
+| `BEHIND_REVERSE_PROXY` *(optional)* | `true` | Set when nginx terminates HTTPS in front of the API | Default `true` in the stack; use `false` only for direct HTTP to Gunicorn. |
+| `CSRF_TRUSTED_ORIGINS` *(optional)* | `https://bill-vault.com,https://www.bill-vault.com` | Required for **Django admin** behind HTTPS | Comma-separated full origins (scheme + host, no path). |
+
+### Nginx path routing (HTTPS site + API)
+
+If nginx serves your domain and the API runs in Swarm on **127.0.0.1:8000**, proxy these paths to Django (see [`deploy/nginx-billvault.conf.example`](deploy/nginx-billvault.conf.example)):
+
+- **`/api/`** → REST API (`urls.py` uses `api/auth/`, `api/bills/`, etc.)
+- **`/admin/`** → Django admin
+- **`/`** → static site under `/var/www/bill-vault` (`try_files`)
+
+Copy the example to `/etc/nginx/conf.d/billvault.conf`, run **`sudo nginx -t`** and **`sudo systemctl reload nginx`**. Set **`ALLOWED_HOSTS`** to your domain(s) and **`CSRF_TRUSTED_ORIGINS`** to `https://your-domain` (both hosts if you use `www`).
 
 ### Image URL shape
 

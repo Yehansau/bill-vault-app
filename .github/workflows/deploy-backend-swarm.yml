@@ -13,9 +13,9 @@
 #   GCP_PROJECT_ID, GCP_REGION, GCP_AR_REPOSITORY, GCP_VM_HOST, GCP_VM_USER
 #
 # Optional variables (Postgres — defaults shown):
-#   POSTGRES_USER            — default billvault
-#   POSTGRES_DB              — default billvault
-#   ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_STORAGE_BUCKET
+#   POSTGRES_USER, POSTGRES_DB, ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_STORAGE_BUCKET
+#   BEHIND_REVERSE_PROXY     — default true (set false only if no nginx TLS proxy)
+#   CSRF_TRUSTED_ORIGINS     — e.g. https://bill-vault.com,https://www.bill-vault.com (needed for /admin/)
 
 name: Deploy backend (Docker Swarm)
 
@@ -101,11 +101,13 @@ jobs:
           FIREBASE_CREDENTIALS_B64: ${{ secrets.FIREBASE_CREDENTIALS_B64 }}
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           GCP_REGION: ${{ vars.GCP_REGION }}
+          BEHIND_REVERSE_PROXY: ${{ vars.BEHIND_REVERSE_PROXY || 'true' }}
+          CSRF_TRUSTED_ORIGINS: ${{ vars.CSRF_TRUSTED_ORIGINS }}
         with:
           host: ${{ vars.GCP_VM_HOST }}
           username: ${{ vars.GCP_VM_USER }}
           key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
-          envs: BILLVAULT_IMAGE,SECRET_KEY,POSTGRES_USER,POSTGRES_DB,POSTGRES_PASSWORD,ALLOWED_HOSTS,CORS_ALLOW_ALL_ORIGINS,FIREBASE_STORAGE_BUCKET,FIREBASE_CREDENTIALS_B64,GCP_SA_KEY,GCP_REGION
+          envs: BILLVAULT_IMAGE,SECRET_KEY,POSTGRES_USER,POSTGRES_DB,POSTGRES_PASSWORD,ALLOWED_HOSTS,CORS_ALLOW_ALL_ORIGINS,FIREBASE_STORAGE_BUCKET,FIREBASE_CREDENTIALS_B64,GCP_SA_KEY,GCP_REGION,BEHIND_REVERSE_PROXY,CSRF_TRUSTED_ORIGINS
           script: |
             set -eo pipefail
             mkdir -p ~/billvault-stack
@@ -122,6 +124,8 @@ jobs:
             export DATABASE_URL="$(python3 -c "import urllib.parse, os; u=urllib.parse.quote_plus(os.environ['POSTGRES_USER']); p=urllib.parse.quote_plus(os.environ['POSTGRES_PASSWORD']); d=os.environ['POSTGRES_DB']; print(f'postgresql://{u}:{p}@db:5432/{d}')")"
             export BILLVAULT_IMAGE SECRET_KEY DATABASE_URL ALLOWED_HOSTS CORS_ALLOW_ALL_ORIGINS
             export POSTGRES_PASSWORD
+            export BEHIND_REVERSE_PROXY="${BEHIND_REVERSE_PROXY:-true}"
+            export CSRF_TRUSTED_ORIGINS="${CSRF_TRUSTED_ORIGINS:-}"
             export FIREBASE_STORAGE_BUCKET="${FIREBASE_STORAGE_BUCKET:-}"
             export FIREBASE_CREDENTIALS_B64="${FIREBASE_CREDENTIALS_B64:-}"
             docker stack deploy -c ~/billvault-stack/deploy/docker-stack.yml billvault --with-registry-auth

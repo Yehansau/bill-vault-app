@@ -10,8 +10,8 @@
 #        POSTGRES_PASSWORD   — DB password (repo secret)
 #        POSTGRES_DB         — database name (repo variable; default billvault)
 #        DATABASE_URL        — built as postgresql://USER:PASS@db:5432/DB (same stack network)
-#      Optional: ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_STORAGE_BUCKET,
-#                FIREBASE_CREDENTIALS_B64
+#      Optional: ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_*,
+#                BEHIND_REVERSE_PROXY (true behind nginx HTTPS), CSRF_TRUSTED_ORIGINS (comma URLs)
 #
 # Postgres is not published to the host; only the API service reaches it as hostname `db`.
 #
@@ -57,6 +57,8 @@ services:
       FIREBASE_STORAGE_BUCKET: "${FIREBASE_STORAGE_BUCKET:-}"
       FIREBASE_CREDENTIALS_B64: "${FIREBASE_CREDENTIALS_B64:-}"
       GUNICORN_WORKERS: "${GUNICORN_WORKERS:-3}"
+      BEHIND_REVERSE_PROXY: "${BEHIND_REVERSE_PROXY:-true}"
+      CSRF_TRUSTED_ORIGINS: "${CSRF_TRUSTED_ORIGINS:-}"
     volumes:
       - billvault-media:/app/media
     deploy:
