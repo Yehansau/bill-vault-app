@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
 // ─── Colour tokens (matches the rest of the app) ─────────────────────────────
 const COLORS = {
@@ -97,28 +99,50 @@ const AchievementCard = ({
   </View>
 );
 
-const handleLogout = async () => {
-  await AsyncStorage.clear();
-  router.push("/auth/login");
-};
-
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 const ProfileScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"home" | "search" | "add" | "bell" | "person">("person");
-
+  const [photo, setPhoto] = useState<string | null>(null);
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
+    AsyncStorage.getAllKeys().then((keys) => console.log("Keys:", keys));
+
     AsyncStorage.getItem("full_name").then((name) =>
-      setUserName(name || "Your name"),
+      setUserName(name || "Your name")
     );
 
     AsyncStorage.getItem("email").then((email) =>
       setEmail(email || "Your email"),
     );
+
   }, []);
+
+    // functions after hooks
+  const handleLogout = async () => {
+    await AsyncStorage.clear();
+    router.push("/auth/login");
+  };
+
+  const handlePickPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Please allow access to your photo library.");
+      return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -129,18 +153,33 @@ const ProfileScreen: React.FC = () => {
       >
         {/* ── Avatar + name ── */}
         <View style={styles.avatarSection}>
-          <View style={styles.avatarWrapper}>
-            <View style={styles.avatarCircle}>
-              <Ionicons name="person" size={44} color={COLORS.white} />
-            </View>
-          </View>
-          <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.userEmail}>{email}</Text>
+        
+          <TouchableOpacity style={styles.avatarWrapper} onPress={handlePickPhoto}>
+  {photo ? (
+    <Image source={{ uri: photo }} style={styles.avatarCircle} />
+  ) : (
+    <View style={styles.avatarCircle}>
+      <Ionicons name="person" size={44} color={COLORS.white} />
+    </View>
+  )}
+  <View style={styles.cameraIcon}>
+    <Ionicons name="camera" size={12} color={COLORS.white} />
+  </View>
+</TouchableOpacity>
 
-          <TouchableOpacity style={styles.accountTypeBadge}>
-            <Ionicons name="person-circle-outline" size={14} color={COLORS.white} style={{ marginRight: 4 }} />
-            <Text style={styles.accountTypeText}>Individual Account</Text>
-          </TouchableOpacity>
+<Text style={styles.userName}>{userName}</Text>
+<Text style={styles.userEmail}>{email}</Text>
+
+<LinearGradient
+  colors={["#7C3AED", "#4C1D95"]}
+  start={{ x: 0, y: 1 }}
+  end={{ x: 1, y: 0 }}
+  style={styles.accountTypeBadge}
+>
+  <Ionicons name="person-outline" size={14} color={COLORS.white} style={{ marginRight: 6 }} />
+  <Text style={styles.accountTypeText}>Individual Account</Text>
+</LinearGradient>
+          
         </View>
 
         {/* ── Stats row ── */}
@@ -229,8 +268,6 @@ const ProfileScreen: React.FC = () => {
         >
         <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
-        
-        {/*<TouchableOpacity onPress={() => router.push("/")}><Text>logout</Text></TouchableOpacity>*/}
 
       </ScrollView>
 
@@ -569,6 +606,19 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
+  },
+  cameraIcon: {
+  position: "absolute",
+  bottom: 0,
+  right: 0,
+  backgroundColor: COLORS.primary,
+  borderRadius: 10,
+  width: 22,
+  height: 22,
+  alignItems: "center",
+  justifyContent: "center",
+  borderWidth: 2,
+  borderColor: COLORS.white,
   },
 });
 

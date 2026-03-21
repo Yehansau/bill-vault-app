@@ -68,7 +68,7 @@ const LoginScreen = () => {
           secureTextEntry={true}
         />
         
-        <TouchableOpacity style={styles.forgotContainer}>
+        <TouchableOpacity style={styles.forgotContainer} onPress={() => router.push("/auth/reset-password" as any)}>
           <Text style={styles.forgotText}>Forgot password</Text>
         </TouchableOpacity>
 
