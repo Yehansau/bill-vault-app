@@ -92,7 +92,22 @@ For PostgreSQL in Docker or production, set `DATABASE_URL` in `backend/.env` (se
 
 Workflow file: [`.github/workflows/deploy-backend-swarm.yml`](.github/workflows/deploy-backend-swarm.yml).
 
-It builds the Django API image from [`backend/`](backend/), pushes it to **Google Artifact Registry**, copies [`deploy/docker-stack.yml`](deploy/docker-stack.yml) to your VM, and runs **`docker stack deploy`**. The stack includes **PostgreSQL 16** (internal only; hostname `db`) plus the API; `DATABASE_URL` is assembled on the VM from **`POSTGRES_USER`**, **`POSTGRES_DB`** (variables), and **`POSTGRES_PASSWORD`** (secret).
+### What the workflow does (each run)
+
+1. **Validate** that required repository variables and `POSTGRES_PASSWORD` are set.
+2. **Authenticate** to Google Cloud with `GCP_SA_KEY` and configure Docker for **Artifact Registry** in `GCP_REGION`.
+3. **Build** a production image from [`backend/`](backend/) (Dockerfile: dependencies, `collectstatic`, Gunicorn entrypoint).
+4. **Push** the image to  
+   `{GCP_REGION}-docker.pkg.dev/{GCP_PROJECT_ID}/{GCP_AR_REPOSITORY}/billvault-api`  
+   tagged with the **current Git commit SHA** and **`latest`**.
+5. **Copy** [`deploy/docker-stack.yml`](deploy/docker-stack.yml) to the VM over SSH (`GCP_VM_HOST` as `GCP_VM_USER`) into `~/billvault-stack/deploy/`.
+6. **SSH** into the VM and:
+   - run **`docker swarm init`** only if Swarm is not already active;
+   - **`docker login`** to Artifact Registry using the same service account JSON;
+   - build **`DATABASE_URL`** for Django from `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` (Postgres service hostname **`db`** on the overlay network);
+   - run **`docker stack deploy -c …/docker-stack.yml billvault --with-registry-auth`** so the stack updates **Postgres** and **billvault-api** (API published on host **8000** by default).
+
+The running container executes migrations and `collectstatic` on start, then Gunicorn on port 8000.
 
 **Triggers:** **Run workflow** manually in GitHub Actions (`workflow_dispatch`) until you enable auto-deploy. To run on every relevant push to `main`, uncomment the `push:` block at the top of [`.github/workflows/deploy-backend-swarm.yml`](.github/workflows/deploy-backend-swarm.yml).
 
