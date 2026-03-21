@@ -33,13 +33,9 @@ python manage.py runserver 0.0.0.0:8000
 
 ## Errors
 
-1. ModuleNotFoundError: No module named 'dj_database_url'
-
-# run this
-
-pip install dj-database-url psycopg2-binary
-
-2. ModuleNotFoundError: No module named 'pkg_resources'
+```bash
+c
+```
 
 # Install setuptools (provides pkg_resources)
 
