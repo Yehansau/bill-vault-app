@@ -6,7 +6,7 @@ import { SaveBillPayload } from "@/types/bill.types";
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
 
-const API_BASE_URL = "http://10.79.228.206:8000/api";
+const API_BASE_URL = "http://10.65.96.50:8000/api";
 
 
 const api = axios.create({
