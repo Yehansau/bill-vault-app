@@ -52,6 +52,11 @@ const CheckEmailScreen: React.FC = () => {
 
       </View>
 
+        {/* ── New password ── */}
+        <TouchableOpacity onPress={() => router.push("/auth/new-password" as any)}>
+        <Text style={styles.skipText}>New Password</Text>
+        </TouchableOpacity>
+
       {/* ── Bottom note ── */}
       <View style={styles.bottomNote}>
         <Text style={styles.bottomText}>
