@@ -1,19 +1,19 @@
 // Backend API calls
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SaveBillPayload } from '@/types/bill.types';
+import { SaveBillPayload } from "@/types/bill.types";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-const API_BASE_URL = "http://192.168.218.111:8000/api";
+const API_BASE_URL = "http://10.184.227.157:8000/api";
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true",
   },
-  timeout: 10000,
+  timeout: 60000,
 });
 
 // Add token to requests automatically
@@ -41,9 +41,10 @@ api.interceptors.response.use(
     // No response → network issue
     if (!error.response) {
       alert("Network error. Please check your connection.");
-      console.error("Network error:", error);
-      return;
+      console.error("Network error:", error.message);
+      return Promise.reject(error); // ← throw it so the hook catches it;
     }
+    console.error("Error response data:", JSON.stringify(error.response.data));
 
     const status = error.response.status;
     const data = error.response.data;
@@ -52,13 +53,13 @@ api.interceptors.response.use(
       // Expected auth errors
       console.warn("Auth error:", data);
       // Alert should be shown in screen logic OR here (pick one)
-      return;
+      return Promise.reject(error); // ← throw it
     }
 
     // Unexpected server errors
     alert("Something went wrong. Please try again.");
     console.error("Server error:", error);
-    return;
+    return Promise.reject(error); // ← throw it
   },
 );
 
@@ -73,23 +74,31 @@ export const authAPI = {
 };
 
 export const billsAPI = {
-
   // Step 1: Upload image to Firebase + duplicate check
   upload: (formData: FormData) =>
-    api.post('/bills/upload/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    api.post("/bills/upload/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     }),
 
   // Step 2: Run OCR + ML classification
-  process: (data: { firebase_url: string, language: string, upload_type: string }) =>
-    api.post('/bills/process/', data),
+  process: (data: {
+    firebase_url: string;
+    language: string;
+    upload_type: string;
+  }) =>
+    api.post("/bills/process/", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // Authorization header is automatically added by your interceptor
+      },
+    }),
 
   // Step 3: Save final reviewed bill to database
-  save: (data: SaveBillPayload) =>
-    api.post('/bills/save/', data),
+  save: (data: SaveBillPayload) => api.post("/bills/save/", data),
 
   // Get all bills for home screen
-  list: () => api.get('/bills/'),
+  list: () => api.get("/bills/"),
 
   // Get single bill details
   detail: (id: string) => api.get(`/bills/${id}/`),
@@ -97,14 +106,12 @@ export const billsAPI = {
   // Add warranty to a bill item
   addWarranty: (billId: string, data: any) =>
     api.post(`/bills/${billId}/warranty/`, data),
-}
+};
 
 export const warrantiesAPI = {
-
   // Get all warranties for home screen warranty tracker
-  list: () => api.get('/warranties/'),
+  list: () => api.get("/warranties/"),
 
   // Get single warranty
   detail: (id: string) => api.get(`/warranties/${id}/`),
-}
-
+};

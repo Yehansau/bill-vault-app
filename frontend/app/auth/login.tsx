@@ -1,7 +1,14 @@
 import { CustomButton, CustomInput } from "@/components/ui";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, View, Alert } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import logo from "../../assets/images/LogoPicture.png";
 import emailImage from "../../assets/images/icons/emailImage.png";
 import facebookImage from "../../assets/images/icons/facebookImage.png";
@@ -14,82 +21,90 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter email and password");
       return;
     }
-
     setLoading(true);
-
     try {
       const response = await authAPI.login({
         email: email.trim().toLowerCase(),
         password,
       });
-
-      // assuming backend returns: { token: "..." }
       const token = response.data.access;
-
-      if (token) {
-        await AsyncStorage.setItem("token", token); // only save if defined
-      } else {
-        console.warn("Login response has no access token");
+      if (token) await AsyncStorage.setItem("token", token);
+      if (email) {
+        await AsyncStorage.setItem("email", email);
       }
-
-      Alert.alert("Success", "Logged in successfully");
-
+      if (response.data.user["full_name"]) {
+        await AsyncStorage.setItem(
+          "full_name",
+          response.data.user["full_name"],
+        );
+      }
       router.push("/(tabs)");
     } catch (error: any) {
-      const message = "Invalid email or password";
-
-      Alert.alert("Login Failed", message);
+      Alert.alert("Login Failed", "Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={["#944ABC", "#3B0856"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.container}
-    >
-      <View style={styles.imageContainer}>
+    <LinearGradient colors={["#944ABC", "#3B0856"]} style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.header}>
         <Image source={logo} style={styles.logo} />
-        <View style={styles.userNameInput}>
+        <Text style={styles.helloText}>Hello!</Text>
+        <Text style={styles.subText}>Great to see you back.</Text>
+      </View>
+
+      {/* White Card Section */}
+      <View style={styles.whiteCard}>
+        <View style={styles.inputGap}>
           <CustomInput
-            placeholder="Email"
+            placeholder="Username"
             value={email}
             onChangeText={setEmail}
           />
         </View>
+
         <CustomInput
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
         />
-        <View style={styles.loginButton}>
+        
+        <TouchableOpacity
+          style={styles.forgotContainer}
+          onPress={() => router.push("/auth/reset-password" as any)}
+        >
+          <Text style={styles.forgotText}>Forgot password</Text>
+        </TouchableOpacity>
+
+        <View style={styles.loginButtonContainer}>
           <CustomButton
-            title="Login"
+            title="LOGIN"
             onPress={handleLogin}
             loading={loading}
             variant="secondary"
+            style={{ borderWidth: 0, width: 160 }}
           />
         </View>
-        <View style={styles.rectangleContainer}>
-          <View style={styles.rectangle} />
-          <Text style={styles.text}>Or</Text>
-          <View style={styles.rectangle} />
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>Or</Text>
+          <View style={styles.line} />
         </View>
-        <View style={styles.logoContainer}>
-          <Image style={styles.image} source={googleImage} />
-          <Image style={styles.image} source={emailImage} />
-          <Image style={styles.image} source={facebookImage} />
+
+        <View style={styles.socialContainer}>
+          <Image style={styles.socialIcon} source={googleImage} />
+          <Image style={styles.socialIcon} source={emailImage} />
+          <Image style={styles.socialIcon} source={facebookImage} />
         </View>
       </View>
     </LinearGradient>
@@ -99,70 +114,84 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
-    alignItems: "center",
   },
-
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 40,
+    paddingBottom: 30,
+  },
   logo: {
-    height: 110,
-    width: 110,
-    marginTop: 120,
-    marginBottom: 80,
+    height: 80,
+    width: 80,
+    marginBottom: 20,
+    borderRadius: 20,
   },
-
-  imageContainer: {
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 20,
+  helloText: {
+    fontSize: 34,
+    fontWeight: "bold",
+    color: "white",
   },
-
-  logoContainer: {
-    flexDirection: "row",
+  subText: {
+    fontSize: 16,
+    color: "white",
+    marginTop: 5,
+    opacity: 0.9,
+  },
+  whiteCard: {
+    flex: 1,
+    backgroundColor: "white",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 40,
+    paddingTop: 50,
     alignItems: "center",
-    justifyContent: "space-evenly",
+  },
+  inputGap: {
     width: "100%",
+    marginBottom: 20,
+  },
+  forgotContainer: {
+    alignSelf: "flex-end",
+    marginTop: -10,
+    marginRight: 10,
+  },
+  forgotText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#333",
+  },
+  loginButtonContainer: {
     marginTop: 40,
+    width: "100%",
+    alignItems: "center",
   },
-
-  rectangleContainer: {
+  dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 30,
     width: "100%",
-    marginTop: 60,
-    justifyContent: "center",
   },
-
-  rectangle: {
-    height: 2,
-    width: "38%",
-    backgroundColor: "black",
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ccc",
   },
-
-  text: {
+  orText: {
+    marginHorizontal: 10,
     fontSize: 16,
     color: "black",
-    marginHorizontal: 10, // ✅ IMPORTANT
-    fontWeight: "500",
+    fontWeight: "600",
   },
-
-  image: {
-    height: 30,
-    width: 30,
+  socialContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "70%",
+    marginTop: 30,
   },
-
-  loginButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 50,
-    width: "100%",
-    marginTop: 40,
-  },
-
-  userNameInput: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 20,
-    width: "100%",
+  socialIcon: {
+    height: 35,
+    width: 35,
+    resizeMode: "contain",
   },
 });
 

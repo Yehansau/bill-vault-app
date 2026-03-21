@@ -8,7 +8,7 @@ import { useRouter } from "expo-router";
 import { Image, Text, View } from "react-native";
 
 const ConfirmScreen = () => {
-    const router = useRouter();
+  const router = useRouter();
 
   return (
     <LinearGradient
@@ -29,7 +29,10 @@ const ConfirmScreen = () => {
       </Text>
       <CustomButton
         title="Back to Home"
-        onPress={() => router.push("./(tabs)/index.tsx")}
+        onPress={() => router.push("/(tabs)")}
+        style={{
+          width: "50%",
+        }}
       />
     </LinearGradient>
   );

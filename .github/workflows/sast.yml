@@ -1,0 +1,65 @@
+# Static application security testing for the Django backend.
+# Bandit + pip-audit work on GitHub Free private repos. CodeQL code scanning is not
+# included here — it needs GitHub Advanced Security for private repos (or a public repo).
+
+name: SAST
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/sast.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/sast.yml"
+  schedule:
+    - cron: "15 6 * * 1" # Weekly Monday 06:15 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sast-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bandit:
+    name: Bandit (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Bandit
+        run: pip install "bandit[toml]>=1.7"
+
+      # High severity only (use -ll for medium+ if you want stricter checks)
+      - name: Run Bandit
+        run: bandit -r billvault authentication bills -lll -q
+
+  pip-audit:
+    name: pip-audit (dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Audit requirements
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt --format columns

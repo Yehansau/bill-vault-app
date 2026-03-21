@@ -117,6 +117,11 @@ def register(request):
         response_data["user"]["business_type"] = user.business_type
         response_data["user"]["phone_number"] = user.phone_number
 
+    # Generate tokens so frontend can use API immediately after register
+    refresh = RefreshToken.for_user(user)
+    response_data["access"] = str(refresh.access_token)
+    response_data["refresh"] = str(refresh)
+    
     return Response(response_data, status=status.HTTP_201_CREATED)
 
 

@@ -1,42 +1,36 @@
-/*import { View, Text, StyleSheet } from "react-native";
-import { auth } from "../../firebaseConfig";
-// import { auth } from "../firebaseConfig.js";
-
-export default function Index() {
-  console.log("Firebase initialized:", auth.app.name);
-
-  return (
-    <View style={styles.container}>
-      <Text>BillVault - Firebase Connected! ✅</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-*/
 import arrow from "@/assets/images/arrow.png";
 import bell from "@/assets/images/icons/bell.png";
 import vault from "@/assets/images/vault.png";
 import FilesCard from "@/components/home/RecentBillCard";
-// import ProgressBar from "@/components/ProgressBar";
-// import SearchBar from "@/components/SearchBar";
+import ProgressBar from "@/components/home/ProgressBar";
+import SearchBar from "@/components/home/SearchBar";
 import WarrantyCard from "@/components/home/WarrantyTrackerCard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link } from "expo-router";
-import { FlatList, Image, ScrollView, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { router } from "expo-router";
 
 const HorizontalRule = () => {
   return <View className="w-3/4 bg-gray-200 h-1 my-4 mx-auto" />;
 };
 
 export default function App() {
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem("full_name").then((name) =>
+      setUserName(name || "there"),
+    );
+  }, []);
+
   const getOrdinal = (day: number) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
@@ -62,23 +56,17 @@ export default function App() {
   const formattedDate = `${day}${getOrdinal(day)} ${month}`;
 
   return (
-    <View className="flex-1 flex-col bg-white px-7 pt-14">
+    <View className="flex-1 flex-col bg-white px-5 pt-14">
       <View className="flex-row justify-between">
         <View className="flex-col">
           <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>
           <Text className="text-lg font-bold">{formattedDate}</Text>
         </View>
 
-        <Link href="./auth">
-          <Image
-            source={bell}
-            className="flex-end size-9"
-            resizeMode="contain"
-          />
-        </Link>
+        <Image source={bell} className="flex-end size-9" resizeMode="contain" />
       </View>
-      <Text className="text-2xl font-bold mt-2">Hi John!</Text>
-      {/* <SearchBar /> */}
+      <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
+      <SearchBar />
 
       <ScrollView
         className="flex-1"
@@ -112,7 +100,7 @@ export default function App() {
                   20GB of 35GB Used
                 </Text>
                 <View className="w-full pt-2">
-                  {/* <ProgressBar progress={67} /> */}
+                  <ProgressBar progress={67} />
                 </View>
               </View>
 
@@ -125,7 +113,9 @@ export default function App() {
 
         <View className="flex-row justify-between">
           <Text className="text-2xl font-bold">Warranty Tracker</Text>
-          <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          <TouchableOpacity onPress={() => router.push("/upload/bill-review")}>
+            <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 155, marginVertical: 10 }}>
