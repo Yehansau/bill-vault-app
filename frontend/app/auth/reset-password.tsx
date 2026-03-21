@@ -30,11 +30,7 @@ const ResetPasswordScreen: React.FC = () => {
       // TODO: replace with your actual API call
       // await authAPI.resetPassword({ email: email.trim().toLowerCase() });
       await new Promise((res) => setTimeout(res, 1200));
-      Alert.alert(
-        "Email Sent",
-        "Check your inbox for instructions to reset your password.",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      router.push("/auth/check-email" as any);
     } catch {
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
