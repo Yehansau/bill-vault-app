@@ -30,11 +30,7 @@ const ResetPasswordScreen: React.FC = () => {
       // TODO: replace with your actual API call
       // await authAPI.resetPassword({ email: email.trim().toLowerCase() });
       await new Promise((res) => setTimeout(res, 1200));
-      Alert.alert(
-        "Email Sent",
-        "Check your inbox for instructions to reset your password.",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      router.push("/auth/check-email" as any);
     } catch {
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
@@ -46,7 +42,7 @@ const ResetPasswordScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Back button */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={22} color="#1F2937" />
+        <Ionicons name="arrow-back" size={22} color="#1F2937"/>
       </TouchableOpacity>
 
       {/* Content */}
@@ -85,7 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   backButton: {
-    marginTop: 12,
+    marginTop: 50,
     marginLeft: 20,
     width: 36,
     height: 36,
@@ -93,7 +89,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 28,
+    paddingTop: 70,
   },
   title: {
     fontSize: 28,
