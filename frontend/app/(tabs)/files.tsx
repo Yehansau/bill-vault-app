@@ -139,7 +139,7 @@ function FolderCard({ folder }: { folder: Folder }) {
     <TouchableOpacity
       onPress={() =>
         router.push({
-          pathname: "/(tabs)/files",
+          pathname: "/files/folder",
           params: { category: folder.name },
         })
       }
