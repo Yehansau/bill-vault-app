@@ -18,7 +18,7 @@ Notifications.setNotificationHandler({
 });
 
 // ─────────────────────────────────────────────────────
-// REQUEST PERMISSION
+// REQUESTING PERMISSION
 // ─────────────────────────────────────────────────────
 // Must be called before scheduling any notifications
 // Shows the system permission popup on first launch
