@@ -1,232 +1,203 @@
-// services/warrantyService.ts
+// services/notificationService.ts
 
-import {
-  collection,
-  addDoc,
-  getDocs,
-  getDoc,
-  doc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-} from 'firebase/firestore';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+import { Warranty } from '../types/warranty.types';
 
-import { db, auth } from '../firebaseConfig';
+// ─────────────────────────────────────────────────────
+// Configure how notifications appear when app is open
+// Show the alert, play sound, and show badge number
+// ─────────────────────────────────────────────────────
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
-import { Warranty, WarrantyFormData } from '../types/warranty.types';
-import {
-  calculateDaysRemaining,
-  calculateExpiryDate,
-  getWarrantyStatus,
-} from '../utils/warrantyCalculations';
+// ─────────────────────────────────────────────────────
+// REQUEST PERMISSION
+// ─────────────────────────────────────────────────────
+// Must be called before scheduling any notifications
+// Shows the system permission popup on first launch
+// Returns true if permission granted, false if denied
 
-const COLLECTION_NAME = 'warranties';
-
-// ============================================================
-// ADD WARRANTY
-// ============================================================
-// Call this when user saves a new warranty.
-// It calculates expiry date, status, days remaining
-// automatically — you only need to pass the form data.
-//
-// Example usage:
-//   const result = await addWarranty({
-//     productName: "Samsung TV",
-//     purchaseDate: new Date(),
-//     warrantyDuration: 24
-//   });
-//   if (result.success) { console.log("Saved!", result.id) }
-// ============================================================
-
-export const addWarranty = async (
-  warrantyData: WarrantyFormData
-): Promise<{ success: boolean; id?: string; error?: string }> => {
+export const requestNotificationPermission = async (): Promise<boolean> => {
   try {
-    // Step 1: Make sure user is logged in
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      throw new Error('User not authenticated');
+    // Notifications only work on real devices, not simulators
+    if (!Device.isDevice) {
+      console.log('⚠️ Notifications only work on real devices');
+      return false;
     }
 
-    // Step 2: Calculate the expiry date from purchase date + duration
-    const expiryDate = calculateExpiryDate(
-      warrantyData.purchaseDate,
-      warrantyData.warrantyDuration
-    );
+    // Check current permission status
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
 
-    // Step 3: Calculate how many days remain and what the status is
-    const daysRemaining = calculateDaysRemaining(expiryDate);
-    const status = getWarrantyStatus(daysRemaining);
+    let finalStatus = existingStatus;
 
-    // Step 4: Build the full warranty object
-    const warranty: Omit<Warranty, 'id'> = {
-      userId: currentUser.uid,
-      productName: warrantyData.productName,
-      productImage: warrantyData.productImage || undefined,
-      brand: warrantyData.brand || undefined,
-      serialNumber: warrantyData.serialNumber || undefined,
-      purchaseDate: warrantyData.purchaseDate,
-      warrantyDuration: warrantyData.warrantyDuration,
-      expiryDate,
-      daysRemaining,
-      status,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // If not granted yet, ask the user
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
 
-    // Step 5: Save to Firestore
-    // Note: Firestore needs Timestamp instead of JS Date objects
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...warranty,
-      purchaseDate: Timestamp.fromDate(warranty.purchaseDate),
-      expiryDate: Timestamp.fromDate(warranty.expiryDate),
-      createdAt: Timestamp.fromDate(warranty.createdAt),
-      updatedAt: Timestamp.fromDate(warranty.updatedAt),
+    if (finalStatus !== 'granted') {
+      console.log('❌ Notification permission denied');
+      return false;
+    }
+
+    // Android needs a notification channel set up
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('warranty-alerts', {
+        name: 'Warranty Alerts',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#944ABC',
+        sound: 'default',
+      });
+    }
+
+    console.log('✅ Notification permission granted');
+    return true;
+
+  } catch (error) {
+    console.error('❌ Error requesting notification permission:', error);
+    return false;
+  }
+};
+
+// ─────────────────────────────────────────────────────
+// CANCEL ALL SCHEDULED NOTIFICATIONS
+// ─────────────────────────────────────────────────────
+// Called before rescheduling to avoid duplicates
+// Every time user opens app we cancel and reschedule fresh
+
+export const cancelAllNotifications = async (): Promise<void> => {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  console.log('🗑️ All scheduled notifications cancelled');
+};
+
+// ─────────────────────────────────────────────────────
+// SCHEDULE NOTIFICATIONS FOR ONE WARRANTY
+// ─────────────────────────────────────────────────────
+// Schedules up to 3 notifications per warranty:
+// - 14 days before expiry
+// - 7 days before expiry
+// - 1 day before expiry
+// All notifications fire at 9:00 AM on the correct day
+// Only schedules future notifications — skips past ones
+
+const scheduleWarrantyNotifications = async (
+  warranty: Warranty
+): Promise<void> => {
+  // The 3 reminder intervals we want
+  const reminderDays = [14, 7, 1];
+
+  for (const days of reminderDays) {
+    // Calculate what date this notification should fire
+    const notificationDate = new Date(warranty.expiryDate);
+    notificationDate.setDate(notificationDate.getDate() - days);
+
+    // Set the time to 9:00 AM
+    notificationDate.setHours(9, 0, 0, 0);
+
+    // Skip if this date is already in the past
+    if (notificationDate <= new Date()) {
+      console.log(
+        `⏭️ Skipping ${days}-day reminder for ${warranty.productName} — date has passed`
+      );
+      continue;
+    }
+
+    // Build the notification message based on days remaining
+    let title = '';
+    let body = '';
+
+    if (days === 14) {
+      title = '🔔 Warranty Expiring Soon';
+      body = `Your ${warranty.productName} warranty expires in 14 days!`;
+    } else if (days === 7) {
+      title = '⚠️ Warranty Expiring in 7 Days';
+      body = `Your ${warranty.productName} warranty expires on ${formatNotificationDate(warranty.expiryDate)}`;
+    } else if (days === 1) {
+      title = '🚨 Warranty Expires Tomorrow!';
+      body = `Your ${warranty.productName} warranty expires tomorrow! Take action now.`;
+    }
+
+    // Schedule the notification
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        // Extra data passed to app when notification is tapped
+        data: {
+          warrantyId: warranty.id,
+          productName: warranty.productName,
+          type: 'warranty_expiry',
+        },
+        sound: 'default',
+      },
+      trigger: {
+        date: notificationDate,
+        channelId: 'warranty-alerts', // Android only
+      },
     });
 
-    console.log('✅ Warranty saved:', docRef.id);
-    return { success: true, id: docRef.id };
-
-  } catch (error: any) {
-    console.error('❌ Error saving warranty:', error);
-    return { success: false, error: error.message };
+    console.log(
+      `✅ Scheduled ${days}-day reminder for ${warranty.productName} on ${notificationDate.toDateString()}`
+    );
   }
 };
 
-// ============================================================
-// GET ALL WARRANTIES
-// ============================================================
-// Fetches all warranties belonging to the logged-in user.
-// Ordered by expiry date (soonest expiring comes first).
-// Also recalculates days remaining fresh each time,
-// so the count is always accurate even days later.
-//
-// Example usage:
-//   const warranties = await getWarranties();
-//   console.log(warranties.length);
-// ============================================================
+// ─────────────────────────────────────────────────────
+// SCHEDULE ALL WARRANTY NOTIFICATIONS
+// ─────────────────────────────────────────────────────
+// Main function called from HomeScreen on app open
+// Cancels all existing notifications first
+// Then schedules fresh ones for all warranties
+// This keeps notifications accurate and up to date
 
-export const getWarranties = async (): Promise<Warranty[]> => {
+export const scheduleAllWarrantyNotifications = async (
+  warranties: Warranty[]
+): Promise<void> => {
   try {
-    // Step 1: Make sure user is logged in
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      throw new Error('User not authenticated');
-    }
+    // Step 1: Cancel all existing scheduled notifications
+    // Prevents duplicates if user opens app multiple times
+    await cancelAllNotifications();
 
-    // Step 2: Build the Firestore query
-    // - Only fetch warranties that belong to this user
-    // - Sort by expiry date (soonest first)
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where('userId', '==', currentUser.uid),
-      orderBy('expiryDate', 'asc')
+    // Step 2: Filter to only active and expiring_soon warranties
+    // No point notifying about already expired warranties
+    const relevantWarranties = warranties.filter(
+      (w) => w.status === 'active' || w.status === 'expiring_soon'
     );
 
-    const querySnapshot = await getDocs(q);
+    console.log(
+      `📅 Scheduling notifications for ${relevantWarranties.length} warranties`
+    );
 
-    // Step 3: Convert each Firestore document into a Warranty object
-    const warranties: Warranty[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-
-      // Firestore stores dates as Timestamps — convert back to JS Date
-      const expiryDate = data.expiryDate.toDate();
-
-      const warranty: Warranty = {
-        id: doc.id,
-        ...data,
-        purchaseDate: data.purchaseDate.toDate(),
-        expiryDate: expiryDate,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-        // Recalculate fresh so it's always accurate
-        daysRemaining: calculateDaysRemaining(expiryDate),
-        status: getWarrantyStatus(calculateDaysRemaining(expiryDate)),
-      } as Warranty;
-
-      warranties.push(warranty);
-    });
-
-    return warranties;
-
-  } catch (error: any) {
-    console.error('❌ Error fetching warranties:', error);
-    return [];
-  }
-};
-
-// ============================================================
-// GET SINGLE WARRANTY BY ID
-// ============================================================
-// Fetches one warranty using its Firestore document ID.
-// Used by the warranty-detail.tsx screen.
-//
-// Example usage:
-//   const warranty = await getWarrantyById("abc123");
-//   if (warranty) { console.log(warranty.productName) }
-// ============================================================
-
-export const getWarrantyById = async (
-  warrantyId: string
-): Promise<Warranty | null> => {
-  try {
-    const docRef = doc(db, COLLECTION_NAME, warrantyId);
-    const docSnap = await getDoc(docRef);
-
-    // Return null if document doesn't exist
-    if (!docSnap.exists()) {
-      return null;
+    // Step 3: Schedule notifications for each warranty
+    for (const warranty of relevantWarranties) {
+      await scheduleWarrantyNotifications(warranty);
     }
 
-    const data = docSnap.data();
-    const expiryDate = data.expiryDate.toDate();
+    console.log('✅ All warranty notifications scheduled successfully');
 
-    const warranty: Warranty = {
-      id: docSnap.id,
-      ...data,
-      purchaseDate: data.purchaseDate.toDate(),
-      expiryDate: expiryDate,
-      createdAt: data.createdAt.toDate(),
-      updatedAt: data.updatedAt.toDate(),
-      daysRemaining: calculateDaysRemaining(expiryDate),
-      status: getWarrantyStatus(calculateDaysRemaining(expiryDate)),
-    } as Warranty;
-
-    return warranty;
-
-  } catch (error: any) {
-    console.error('❌ Error fetching warranty by ID:', error);
-    return null;
+  } catch (error) {
+    console.error('❌ Error scheduling notifications:', error);
   }
 };
 
-// ============================================================
-// DELETE WARRANTY
-// ============================================================
-// Permanently deletes a warranty from Firestore.
-// Called from the detail screen when user confirms deletion.
-//
-// Example usage:
-//   const result = await deleteWarranty("abc123");
-//   if (result.success) { router.back() }
-// ============================================================
-
-export const deleteWarranty = async (
-  warrantyId: string
-): Promise<{ success: boolean; error?: string }> => {
-  try {
-    const docRef = doc(db, COLLECTION_NAME, warrantyId);
-    await deleteDoc(docRef);
-
-    console.log('✅ Warranty deleted');
-    return { success: true };
-
-  } catch (error: any) {
-    console.error('❌ Error deleting warranty:', error);
-    return { success: false, error: error.message };
-  }
+// ─────────────────────────────────────────────────────
+// HELPER: Format date for notification message
+// Returns string like "24 Mar 2026"
+// ─────────────────────────────────────────────────────
+const formatNotificationDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 };

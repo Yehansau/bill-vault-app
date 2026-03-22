@@ -3,10 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import girlImage from "../../assets/images/bills_woman.png"; 
-import { Dimensions } from 'react-native';
-
-const { width } = Dimensions.get('window'); // This gets the actual screen width
+import girlImage from "../../assets/images/woman_bills.png"; // replace with your girl image
 
 const AuthChoiceScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -48,7 +45,7 @@ const AuthChoiceScreen = () => {
           onPress={handleLogin}
           loading={loading}
           variant="secondary"
-          style={{ width: "80%", borderWidth: 0}}
+          style={{ width: "80%" }}
         />
 
         <View style={styles.spacing} />
@@ -58,7 +55,7 @@ const AuthChoiceScreen = () => {
           onPress={handleCreateAccount}
           loading={loading}
           variant="secondary"
-          style={{ width: "80%", borderWidth: 0 }}
+          style={{ width: "80%" }}
         />
       </View>
     </LinearGradient>
@@ -93,14 +90,13 @@ const styles = StyleSheet.create({
 
   imageContainer: {
     alignItems: "center",
-    marginTop: 60,
+    marginTop: 60
   },
 
   image: {
-    width: width * 0.85,
-    height: width * 0.85,
+    width: 260,
+    height: 260,
     resizeMode: "contain",
-    marginBottom:-30
   },
 
   buttonContainer: {
