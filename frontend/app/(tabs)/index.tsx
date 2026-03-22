@@ -24,14 +24,13 @@ const styles = StyleSheet.create({
 
 // app/(tabs)/index.tsx
 
+// app/(tabs)/index.tsx
+
 import arrow from "@/assets/images/arrow.png";
 import bell from "@/assets/images/icons/bell.png";
 import vault from "@/assets/images/vault.png";
 import FilesCard from "@/components/home/RecentBillCard";
-import ProgressBar from "@/components/home/ProgressBar";
-import SearchBar from "@/components/home/SearchBar";
 import WarrantyCard from "@/components/home/WarrantyTrackerCard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, useRouter } from "expo-router";
 import {
@@ -45,24 +44,23 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 
-// Warranty service and types from the files we created
+// Warranty service and types
 import { getWarranties } from "../../services/warrantyService";
 import { Warranty } from "../../types/warranty.types";
 
-// ─────────────────────────────────────────
+// Firebase auth
+import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+
+// Notification service
+import {
+  requestNotificationPermission,
+  scheduleAllWarrantyNotifications,
+} from "../services/notificationService.ts";
+
+// ───────────────────────────────────────
 // Small reusable divider line between sections
 // ─────────────────────────────────────────
-import { useEffect, useState } from "react";
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { router } from "expo-router";
-
 const HorizontalRule = () => {
   return <View className="w-3/4 bg-gray-200 h-1 my-4 mx-auto" />;
 };
@@ -70,7 +68,7 @@ const HorizontalRule = () => {
 export default function App() {
   const router = useRouter();
 
-  // ========== WARRANTY STATE ==========
+  // ========== STATE ==========
 
   // Stores first 4 warranties for the preview section
   const [warranties, setWarranties] = useState<Warranty[]>([]);
@@ -78,22 +76,21 @@ export default function App() {
   // Controls the loading spinner while Firebase fetches data
   const [loadingWarranties, setLoadingWarranties] = useState(true);
 
-  // ========== FETCH WARRANTIES ON LOAD ==========
-
-  useEffect(() => {
-    fetchWarranties();
-  }, []);
+  // ========== FETCH WARRANTIES ==========
 
   const fetchWarranties = async () => {
     try {
       setLoadingWarranties(true);
 
-      // Call the service from File 3 — fetches all warranties
+      // Fetch all warranties from Firebase
       const allWarranties = await getWarranties();
 
       // Only show first 4 on HomeScreen preview
-      // User can tap "View All" to see everything
       setWarranties(allWarranties.slice(0, 4));
+
+      // Schedule notifications for ALL warranties
+      // We pass the full list, not just the first 4
+      await scheduleAllWarrantyNotifications(allWarranties);
 
     } catch (error) {
       console.error("Error fetching warranties for HomeScreen:", error);
@@ -102,16 +99,34 @@ export default function App() {
     }
   };
 
-  // ========== DATE FORMATTING ==========
-  // Shows current date in header e.g. "Friday, 20th March"
-
-  const [userName, setUserName] = useState("");
+  // ========== WAIT FOR AUTH THEN FETCH ==========
+  // auth.currentUser is null on first render even if user IS logged in
+  // onAuthStateChanged waits for Firebase to confirm auth state
+  // Only then do we request permissions and fetch warranties
 
   useEffect(() => {
-    AsyncStorage.getItem("full_name").then((name) =>
-      setUserName(name || "there"),
-    );
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log("🔑 My User ID:", user.uid);
+
+        // Step 1: Ask for notification permission
+        // Shows system popup on very first launch
+        await requestNotificationPermission();
+
+        // Step 2: Fetch warranties and schedule notifications
+        fetchWarranties();
+
+      } else {
+        console.log("❌ No user logged in");
+        setLoadingWarranties(false);
+      }
+    });
+
+    // Cleanup listener when component unmounts
+    return () => unsubscribe();
   }, []);
+
+  // ========== DATE FORMATTING ==========
 
   const getOrdinal = (day: number) => {
     if (day > 3 && day < 21) return "th";
@@ -129,15 +144,13 @@ export default function App() {
   const month = date.toLocaleDateString("en-US", { month: "long" });
   const formattedDate = `${day}${getOrdinal(day)} ${month}`;
 
-  // Dummy data for recent uploads section (unchanged from original)
+  // Dummy data for recent uploads section
   const recentUploadsData = ["upload 1", "upload 2", "upload 3", "upload 4"];
 
   // ========== NAVIGATION ==========
 
-  // Navigates to the full warranty list screen
-  // Works even if warranties array is empty
   const handleViewAllWarranties = () => {
-    router.push("/warranty/warranty-tracker");
+    router.push("../warranty/warranty-tracker");
   };
 
   // ========== MAIN RENDER ==========
@@ -146,20 +159,23 @@ export default function App() {
     <View className="flex-1 flex-col bg-white px-7 pt-14">
 
       {/* ── Top Bar: Weekday + Notification Bell ── */}
-    <View className="flex-1 flex-col bg-white px-5 pt-14">
       <View className="flex-row justify-between">
         <View className="flex-col">
           <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>
           <Text className="text-lg font-bold">{formattedDate}</Text>
         </View>
 
-        <Image source={bell} className="flex-end size-9" resizeMode="contain" />
+        <Link href="./auth">
+          <Image
+            source={bell}
+            className="flex-end size-9"
+            resizeMode="contain"
+          />
+        </Link>
       </View>
 
       {/* ── Greeting ── */}
       <Text className="text-2xl font-bold mt-2">Hi John!</Text>
-      <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
-      <SearchBar />
 
       <ScrollView
         className="flex-1"
@@ -194,9 +210,6 @@ export default function App() {
                 <Text className="text-white text-md font-semibold">
                   20GB of 35GB Used
                 </Text>
-                <View className="w-full pt-2">
-                  <ProgressBar progress={67} />
-                </View>
               </View>
               <Image source={arrow} className="w-14 h-24 mt-12" />
             </View>
@@ -211,9 +224,6 @@ export default function App() {
 
           {/* View All — always tappable, even with 0 warranties */}
           <TouchableOpacity onPress={handleViewAllWarranties}>
-            <Text className="text-sm text-gray-400 font-bold">View All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/upload/bill-review")}>
             <Text className="text-sm text-gray-400 font-bold">View All</Text>
           </TouchableOpacity>
         </View>
