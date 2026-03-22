@@ -56,7 +56,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import {
   requestNotificationPermission,
   scheduleAllWarrantyNotifications,
-} from "../services/notificationService.ts";
+} from "../../services/notificationService";
 
 // ───────────────────────────────────────
 // Small reusable divider line between sections
