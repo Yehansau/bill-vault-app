@@ -19,7 +19,7 @@ const api = axios.create({
 
 // Add token to requests automatically
 api.interceptors.request.use(
-  async (config) => {
+  async (config: any) => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (token) {

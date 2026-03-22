@@ -29,7 +29,7 @@ const LoginScreen = () => {
     }
     setLoading(true);
     try {
-      const response = await authAPI.login({
+      const response: any = await authAPI.login({
         email: email.trim().toLowerCase(),
         password,
       });
@@ -106,6 +106,17 @@ const LoginScreen = () => {
           <Image style={styles.socialIcon} source={emailImage} />
           <Image style={styles.socialIcon} source={facebookImage} />
         </View>
+        {/*extra profile button*/}
+        <TouchableOpacity
+          style={{ marginTop: 30 }}
+          onPress={() => router.push("/(tabs)/profile" as any)}
+        >
+          <Text style={{ color: "#7C3AED", fontWeight: "700", fontSize: 14 }}>
+            Profile
+          </Text>
+        </TouchableOpacity>
+
+
       </View>
     </LinearGradient>
   );

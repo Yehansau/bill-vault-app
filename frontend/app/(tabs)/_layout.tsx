@@ -1,5 +1,5 @@
 import { Tabs, usePathname, Stack } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import analytics from "@/assets/images/icons/analytics.png";
 import files from "@/assets/images/icons/files.png";
@@ -110,7 +110,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            headerShown: true,
+            headerShown: false,
             headerTitle: "Profile",
             headerTitleAlign: "center",
             headerTitleStyle: { color: "#000", fontSize: 18 },
