@@ -74,7 +74,7 @@ function BillCard({ bill }: { bill: Bill }) {
         <TouchableOpacity
             onPress={() =>
                 router.push({
-                    pathname: "/files/bill-detail",
+                    pathname: "/files/bill-detail" as any,
                     params: { id: bill.id },
                 })
             }
