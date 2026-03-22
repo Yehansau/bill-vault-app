@@ -19,8 +19,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
-*/
+});*/
 
 // app/(tabs)/index.tsx
 
@@ -47,7 +46,7 @@ import { getWarranties } from "../../services/warrantyService";
 import { Warranty } from "../../types/warranty.types";
 
 // Firebase auth
-import { auth } from "../../firebaseConfig";
+import { auth } from "../../firebaseConfig.ts";
 import { onAuthStateChanged } from "firebase/auth";
 
 // Notification service
