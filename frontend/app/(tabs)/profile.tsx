@@ -153,7 +153,7 @@ const ProfileScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={22} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Profile</Text>
-        <TouchableOpacity onPress={() => Alert.alert("Settings", "Coming soon!")}>
+        <TouchableOpacity onPress={() => router.push("/auth/settings" as any)}>
           <Ionicons name="settings-outline" size={22} color={COLORS.text} />
         </TouchableOpacity>
       </View>
