@@ -13,56 +13,66 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
 // ─────────────────────────────────────────────────────
-// REQUEST PERMISSION
+// REQUEST NOTIFICATION PERMISSION
 // ─────────────────────────────────────────────────────
-export const requestNotificationPermission = async (): Promise<boolean> => {
-  try {
-    // Notifications only work on real devices not simulators
-    if (!Device.isDevice) {
-      console.log('⚠️ Notifications only work on real devices');
+export const requestNotificationPermission =
+  async (): Promise<boolean> => {
+    try {
+      // Only works on real devices not simulators
+      if (!Device.isDevice) {
+        console.log('⚠️ Notifications only work on real devices');
+        return false;
+      }
+
+      // Check current permission status
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+
+      let finalStatus = existingStatus;
+
+      // If not granted yet, ask the user
+      if (existingStatus !== 'granted') {
+        const { status } =
+          await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('❌ Notification permission denied');
+        return false;
+      }
+
+      // Android needs a notification channel
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync(
+          'warranty-alerts',
+          {
+            name: 'Warranty Alerts',
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#944ABC',
+            sound: 'default',
+          }
+        );
+      }
+
+      console.log('✅ Notification permission granted');
+      return true;
+
+    } catch (error) {
+      console.error(
+        '❌ Error requesting notification permission:',
+        error
+      );
       return false;
     }
-
-    // Check current permission status
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-
-    let finalStatus = existingStatus;
-
-    // If not granted yet, ask the user
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('❌ Notification permission denied');
-      return false;
-    }
-
-    // Android needs a notification channel
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('warranty-alerts', {
-        name: 'Warranty Alerts',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#944ABC',
-        sound: 'default',
-      });
-    }
-
-    console.log('✅ Notification permission granted');
-    return true;
-
-  } catch (error) {
-    console.error('❌ Error requesting notification permission:', error);
-    return false;
-  }
-};
+  };
 
 // ─────────────────────────────────────────────────────
 // CANCEL ALL SCHEDULED NOTIFICATIONS
@@ -79,7 +89,7 @@ const scheduleWarrantyNotifications = async (
   warranty: Warranty
 ): Promise<void> => {
 
-  // The 3 reminder intervals
+  // The 3 reminder intervals in days
   const reminderDays = [14, 7, 1];
 
   for (const days of reminderDays) {
@@ -94,7 +104,7 @@ const scheduleWarrantyNotifications = async (
     // Skip if this date is already in the past
     if (notificationDate <= new Date()) {
       console.log(
-        `⏭️ Skipping ${days}-day reminder for "${warranty.productName}" — date has passed`
+        `⏭️ Skipping ${days}-day reminder for "${warranty.productName}" — date passed`
       );
       continue;
     }
@@ -111,7 +121,7 @@ const scheduleWarrantyNotifications = async (
       body = `Your ${warranty.productName} warranty expires on ${formatNotificationDate(warranty.expiryDate)}`;
     } else if (days === 1) {
       title = '🚨 Warranty Expires Tomorrow!';
-      body = `Your ${warranty.productName} warranty expires tomorrow! Take action now.`;
+      body = `Your ${warranty.productName} warranty expires tomorrow!`;
     }
 
     // Schedule the notification
@@ -119,7 +129,6 @@ const scheduleWarrantyNotifications = async (
       content: {
         title,
         body,
-        // Data passed to app when notification is tapped
         data: {
           warrantyId: warranty.id,
           productName: warranty.productName,
@@ -143,19 +152,14 @@ const scheduleWarrantyNotifications = async (
 // ─────────────────────────────────────────────────────
 // SCHEDULE ALL WARRANTY NOTIFICATIONS
 // ─────────────────────────────────────────────────────
-// Main function called from HomeScreen on app open
-// Cancels existing notifications first to avoid duplicates
-// Then schedules fresh ones for all active warranties
-
 export const scheduleAllWarrantyNotifications = async (
   warranties: Warranty[]
 ): Promise<void> => {
   try {
-    // Step 1: Cancel all existing to avoid duplicates
+    // Step 1: Cancel existing to avoid duplicates
     await cancelAllNotifications();
 
-    // Step 2: Only notify for active and expiring_soon
-    // No point notifying about already expired warranties
+    // Step 2: Only notify active and expiring_soon
     const relevantWarranties = warranties.filter(
       (w) => w.status === 'active' || w.status === 'expiring_soon'
     );
@@ -169,7 +173,7 @@ export const scheduleAllWarrantyNotifications = async (
       await scheduleWarrantyNotifications(warranty);
     }
 
-    console.log('✅ All warranty notifications scheduled successfully');
+    console.log('✅ All warranty notifications scheduled');
 
   } catch (error) {
     console.error('❌ Error scheduling notifications:', error);
