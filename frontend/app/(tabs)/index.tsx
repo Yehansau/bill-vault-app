@@ -24,8 +24,6 @@ const styles = StyleSheet.create({
 
 // app/(tabs)/index.tsx
 
-// app/(tabs)/index.tsx
-
 import arrow from "@/assets/images/arrow.png";
 import bell from "@/assets/images/icons/bell.png";
 import vault from "@/assets/images/vault.png";
@@ -58,7 +56,7 @@ import {
   scheduleAllWarrantyNotifications,
 } from "../../services/notificationService";
 
-// ───────────────────────────────────────
+// ─────────────────────────────────────────
 // Small reusable divider line between sections
 // ─────────────────────────────────────────
 const HorizontalRule = () => {
@@ -89,20 +87,19 @@ export default function App() {
       setWarranties(allWarranties.slice(0, 4));
 
       // Schedule notifications for ALL warranties
-      // We pass the full list, not just the first 4
+      // Pass the full list not just the first 4
       await scheduleAllWarrantyNotifications(allWarranties);
 
     } catch (error) {
-      console.error("Error fetching warranties for HomeScreen:", error);
+      console.error("Error fetching warranties:", error);
     } finally {
       setLoadingWarranties(false);
     }
   };
 
   // ========== WAIT FOR AUTH THEN FETCH ==========
-  // auth.currentUser is null on first render even if user IS logged in
+  // auth.currentUser is null on first render even if logged in
   // onAuthStateChanged waits for Firebase to confirm auth state
-  // Only then do we request permissions and fetch warranties
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -110,7 +107,6 @@ export default function App() {
         console.log("🔑 My User ID:", user.uid);
 
         // Step 1: Ask for notification permission
-        // Shows system popup on very first launch
         await requestNotificationPermission();
 
         // Step 2: Fetch warranties and schedule notifications
@@ -150,7 +146,7 @@ export default function App() {
   // ========== NAVIGATION ==========
 
   const handleViewAllWarranties = () => {
-    router.push("../warranty/warranty-tracker");
+    router.push("/warranty/warranty-tracker");
   };
 
   // ========== MAIN RENDER ==========
@@ -161,7 +157,9 @@ export default function App() {
       {/* ── Top Bar: Weekday + Notification Bell ── */}
       <View className="flex-row justify-between">
         <View className="flex-col">
-          <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>
+          <Text className="text-lg font-bold text-[#808080]">
+            {weekday}
+          </Text>
           <Text className="text-lg font-bold">{formattedDate}</Text>
         </View>
 
@@ -222,9 +220,11 @@ export default function App() {
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl font-bold">Warranty Tracker</Text>
 
-          {/* View All — always tappable, even with 0 warranties */}
+          {/* Always tappable even with 0 warranties */}
           <TouchableOpacity onPress={handleViewAllWarranties}>
-            <Text className="text-sm text-gray-400 font-bold">View All</Text>
+            <Text className="text-sm text-gray-400 font-bold">
+              View All
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -251,12 +251,14 @@ export default function App() {
 
           ) : (
 
-            // State 3: Has warranties — show horizontal scroll cards
+            // State 3: Has warranties — horizontal scroll
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
               data={warranties}
-              renderItem={({ item }) => <WarrantyCard warranty={item} />}
+              renderItem={({ item }) => (
+                <WarrantyCard warranty={item} />
+              )}
               keyExtractor={(item) => item.id}
               contentContainerStyle={{ gap: 10 }}
             />
@@ -266,10 +268,12 @@ export default function App() {
 
         <HorizontalRule />
 
-        {/* ── Recent Uploads Section (unchanged) ── */}
+        {/* ── Recent Uploads Section ── */}
         <View className="flex-row justify-between">
           <Text className="text-2xl font-bold">Recent Uploads</Text>
-          <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          <Text className="text-sm text-gray-400 font-bold">
+            View All
+          </Text>
         </View>
 
         <View style={{ minHeight: 170, marginVertical: 10 }}>
