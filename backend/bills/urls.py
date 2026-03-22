@@ -11,4 +11,9 @@ urlpatterns = [
     path('', views.get_bills),                # GET /api/bills/
     path('<uuid:id>/', views.get_bill_detail),              # GET /api/bills/<id>/
     path('<uuid:id>/warranty/', views.add_warranty),        # POST /api/bills/<id>/warranty/
+
+    # Files screen
+    path('folders/', views.get_folders),                         # GET /api/bills/folders/
+    path('folders/<str:category>/', views.get_folder_bills),     # GET /api/bills/folders/Groceries/
+    path('storage/', views.get_storage_stats),                   # GET /api/bills/storage/
 ]
