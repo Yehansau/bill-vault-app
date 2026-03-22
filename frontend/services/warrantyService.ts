@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { db, auth } from '../../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 
 import { Warranty, WarrantyFormData } from '../types/warranty.types';
 import {
@@ -26,10 +26,9 @@ import {
 const COLLECTION_NAME = 'warranties';
 
 // ─────────────────────────────────────────────────────
-// Helper: Get current logged in user safely
+// HELPER: Get current logged in user safely
 // Waits for Firebase Auth to finish loading
-// Returns the User object or null if not logged in
-// This fixes the "Property uid does not exist on {}" error
+// Fixes "Property uid does not exist on {}" error
 // ─────────────────────────────────────────────────────
 const getCurrentUser = (): Promise<User | null> => {
   return new Promise((resolve) => {
@@ -54,17 +53,17 @@ export const addWarranty = async (
       throw new Error('User not authenticated');
     }
 
-    // Step 2: Calculate the expiry date from purchase date + duration
+    // Step 2: Calculate expiry date
     const expiryDate = calculateExpiryDate(
       warrantyData.purchaseDate,
       warrantyData.warrantyDuration
     );
 
-    // Step 3: Calculate how many days remain and what the status is
+    // Step 3: Calculate days remaining and status
     const daysRemaining = calculateDaysRemaining(expiryDate);
     const status = getWarrantyStatus(daysRemaining);
 
-    // Step 4: Build the full warranty object
+    // Step 4: Build full warranty object
     const warranty: Omit<Warranty, 'id'> = {
       userId: currentUser.uid,
       productName: warrantyData.productName,
@@ -111,8 +110,7 @@ export const getWarranties = async (): Promise<Warranty[]> => {
       throw new Error('User not authenticated');
     }
 
-    // Build Firestore query
-    // Only fetch warranties belonging to this user
+    // Query only this user's warranties
     // Sorted by soonest expiry first
     const q = query(
       collection(db, COLLECTION_NAME),
@@ -122,14 +120,13 @@ export const getWarranties = async (): Promise<Warranty[]> => {
 
     const querySnapshot = await getDocs(q);
 
-    // Convert each Firestore document into a Warranty object
+    // Convert Firestore documents to Warranty objects
     const warranties: Warranty[] = [];
 
     querySnapshot.forEach((doc) => {
       const data = doc.data();
 
-      // Firestore stores dates as Timestamps
-      // Convert back to JS Date objects
+      // Convert Firestore Timestamps back to JS Dates
       const expiryDate = data.expiryDate.toDate();
 
       const warranty: Warranty = {
@@ -139,7 +136,7 @@ export const getWarranties = async (): Promise<Warranty[]> => {
         expiryDate: expiryDate,
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
-        // Recalculate fresh so days count is always accurate
+        // Recalculate fresh so count is always accurate
         daysRemaining: calculateDaysRemaining(expiryDate),
         status: getWarrantyStatus(calculateDaysRemaining(expiryDate)),
       } as Warranty;
@@ -166,7 +163,6 @@ export const getWarrantyById = async (
     const docRef = doc(db, COLLECTION_NAME, warrantyId);
     const docSnap = await getDoc(docRef);
 
-    // Return null if document doesn't exist
     if (!docSnap.exists()) {
       return null;
     }
