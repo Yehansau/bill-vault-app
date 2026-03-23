@@ -52,15 +52,6 @@ import { Warranty } from "../../types/warranty.types";
 // ─────────────────────────────────────────
 // Small reusable divider line between sections
 // ─────────────────────────────────────────
-import { useEffect, useState } from "react";
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { router } from "expo-router";
 
 const HorizontalRule = () => {
@@ -94,7 +85,6 @@ export default function App() {
       // Only show first 4 on HomeScreen preview
       // User can tap "View All" to see everything
       setWarranties(allWarranties.slice(0, 4));
-
     } catch (error) {
       console.error("Error fetching warranties for HomeScreen:", error);
     } finally {
@@ -116,10 +106,14 @@ export default function App() {
   const getOrdinal = (day: number) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
     }
   };
 
@@ -144,135 +138,133 @@ export default function App() {
 
   return (
     <View className="flex-1 flex-col bg-white px-7 pt-14">
-
       {/* ── Top Bar: Weekday + Notification Bell ── */}
-    <View className="flex-1 flex-col bg-white px-5 pt-14">
-      <View className="flex-row justify-between">
-        <View className="flex-col">
-          <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>
-          <Text className="text-lg font-bold">{formattedDate}</Text>
-        </View>
-
-        <Image source={bell} className="flex-end size-9" resizeMode="contain" />
-      </View>
-
-      {/* ── Greeting ── */}
-      <Text className="text-2xl font-bold mt-2">Hi John!</Text>
-      <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
-      <SearchBar />
-
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          minHeight: "100%",
-          paddingBottom: 10,
-        }}
-      >
-
-        {/* ── Cloud Storage Card ── */}
-        <View className="rounded-lg h-[160px] overflow-hidden w-full">
-          <LinearGradient
-            colors={["#944ABC", "#3B0856"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flex: 1 }}
-          >
-            <View className="flex-row justify-between pl-4 mt-4">
-              <View className="flex-col justify-between">
-                <View className="flex-row justify-evenly">
-                  <Image source={vault} className="size-24" />
-                  <View className="flex-col">
-                    <Text className="text-white font-semibold text-2xl">
-                      Cloud Storage
-                    </Text>
-                    <Text className="text-white font-semibold text-md">
-                      247 Secured Documents
-                    </Text>
-                  </View>
-                </View>
-                <Text className="text-white text-md font-semibold">
-                  20GB of 35GB Used
-                </Text>
-                <View className="w-full pt-2">
-                  <ProgressBar progress={67} />
-                </View>
-              </View>
-              <Image source={arrow} className="w-14 h-24 mt-12" />
-            </View>
-          </LinearGradient>
-        </View>
-
-        <HorizontalRule />
-
-        {/* ── Warranty Tracker Section ── */}
-        <View className="flex-row justify-between items-center">
-          <Text className="text-2xl font-bold">Warranty Tracker</Text>
-
-          {/* View All — always tappable, even with 0 warranties */}
-          <TouchableOpacity onPress={handleViewAllWarranties}>
-            <Text className="text-sm text-gray-400 font-bold">View All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/upload/bill-review")}>
-            <Text className="text-sm text-gray-400 font-bold">View All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Warranty Preview — 3 states: loading / empty / data */}
-        <View style={{ height: 155, marginVertical: 10 }}>
-          {loadingWarranties ? (
-
-            // State 1: Still fetching from Firebase
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#944ABC" />
-            </View>
-
-          ) : warranties.length === 0 ? (
-
-            // State 2: Fetched but no warranties exist yet
-            <View className="flex-1 justify-center items-center">
-              <Text className="text-gray-400 text-base">
-                No warranties yet
-              </Text>
-              <Text className="text-gray-400 text-xs mt-1">
-                Scan a warranty card to get started!
-              </Text>
-            </View>
-
-          ) : (
-
-            // State 3: Has warranties — show horizontal scroll cards
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={warranties}
-              renderItem={({ item }) => <WarrantyCard warranty={item} />}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={{ gap: 10 }}
-            />
-
-          )}
-        </View>
-
-        <HorizontalRule />
-
-        {/* ── Recent Uploads Section (unchanged) ── */}
+      <View className="flex-1 flex-col bg-white px-5 pt-14">
         <View className="flex-row justify-between">
-          <Text className="text-2xl font-bold">Recent Uploads</Text>
-          <Text className="text-sm text-gray-400 font-bold">View All</Text>
-        </View>
+          <View className="flex-col">
+            <Text className="text-lg font-bold text-[#808080]">{weekday}</Text>
+            <Text className="text-lg font-bold">{formattedDate}</Text>
+          </View>
 
-        <View style={{ minHeight: 170, marginVertical: 10 }}>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={recentUploadsData}
-            renderItem={({ item }) => <FilesCard />}
-            contentContainerStyle={{ gap: 10 }}
+          <Image
+            source={bell}
+            className="flex-end size-9"
+            resizeMode="contain"
           />
         </View>
 
-      </ScrollView>
+        {/* ── Greeting ── */}
+        <Text className="text-2xl font-bold mt-2">Hi John!</Text>
+        <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
+        <SearchBar />
+
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            minHeight: "100%",
+            paddingBottom: 10,
+          }}
+        >
+          {/* ── Cloud Storage Card ── */}
+          <View className="rounded-lg h-[160px] overflow-hidden w-full">
+            <LinearGradient
+              colors={["#944ABC", "#3B0856"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ flex: 1 }}
+            >
+              <View className="flex-row justify-between pl-4 mt-4">
+                <View className="flex-col justify-between">
+                  <View className="flex-row justify-evenly">
+                    <Image source={vault} className="size-24" />
+                    <View className="flex-col">
+                      <Text className="text-white font-semibold text-2xl">
+                        Cloud Storage
+                      </Text>
+                      <Text className="text-white font-semibold text-md">
+                        247 Secured Documents
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className="text-white text-md font-semibold">
+                    20GB of 35GB Used
+                  </Text>
+                  <View className="w-full pt-2">
+                    <ProgressBar progress={67} />
+                  </View>
+                </View>
+                <Image source={arrow} className="w-14 h-24 mt-12" />
+              </View>
+            </LinearGradient>
+          </View>
+
+          <HorizontalRule />
+
+          {/* ── Warranty Tracker Section ── */}
+          <View className="flex-row justify-between items-center">
+            <Text className="text-2xl font-bold">Warranty Tracker</Text>
+
+            {/* View All — always tappable, even with 0 warranties */}
+            <TouchableOpacity onPress={handleViewAllWarranties}>
+              <Text className="text-sm text-gray-400 font-bold">View All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push("/upload/bill-review")}
+            >
+              <Text className="text-sm text-gray-400 font-bold">View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Warranty Preview — 3 states: loading / empty / data */}
+          <View style={{ height: 155, marginVertical: 10 }}>
+            {loadingWarranties ? (
+              // State 1: Still fetching from Firebase
+              <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#944ABC" />
+              </View>
+            ) : warranties.length === 0 ? (
+              // State 2: Fetched but no warranties exist yet
+              <View className="flex-1 justify-center items-center">
+                <Text className="text-gray-400 text-base">
+                  No warranties yet
+                </Text>
+                <Text className="text-gray-400 text-xs mt-1">
+                  Scan a warranty card to get started!
+                </Text>
+              </View>
+            ) : (
+              // State 3: Has warranties — show horizontal scroll cards
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={warranties}
+                renderItem={({ item }) => <WarrantyCard warranty={item} />}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={{ gap: 10 }}
+              />
+            )}
+          </View>
+
+          <HorizontalRule />
+
+          {/* ── Recent Uploads Section (unchanged) ── */}
+          <View className="flex-row justify-between">
+            <Text className="text-2xl font-bold">Recent Uploads</Text>
+            <Text className="text-sm text-gray-400 font-bold">View All</Text>
+          </View>
+
+          <View style={{ minHeight: 170, marginVertical: 10 }}>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={recentUploadsData}
+              renderItem={({ item }) => <FilesCard />}
+              contentContainerStyle={{ gap: 10 }}
+            />
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
