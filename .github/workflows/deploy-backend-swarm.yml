@@ -1,0 +1,131 @@
+# Build BillVault backend image, push to Google Artifact Registry, deploy Swarm stack on a GCE VM.
+#
+# Required GitHub secrets:
+#   GCP_SA_KEY               — service account JSON (Artifact Registry Writer; VM docker pull)
+#   VM_SSH_PRIVATE_KEY       — PEM for SSH to the Compute Engine instance
+#   DJANGO_SECRET_KEY        — Django SECRET_KEY
+#   POSTGRES_PASSWORD        — password for the in-stack Postgres service
+#
+# Optional secrets:
+#   FIREBASE_CREDENTIALS_B64 — base64-encoded Firebase service account JSON (no newlines)
+#
+# Required GitHub repository variables:
+#   GCP_PROJECT_ID, GCP_REGION, GCP_AR_REPOSITORY, GCP_VM_HOST, GCP_VM_USER
+#
+# Optional variables (Postgres — defaults shown):
+#   POSTGRES_USER, POSTGRES_DB, ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_STORAGE_BUCKET
+#   BEHIND_REVERSE_PROXY     — default true (set false only if no nginx TLS proxy)
+#   CSRF_TRUSTED_ORIGINS     — e.g. https://bill-vault.com,https://www.bill-vault.com (needed for /admin/)
+
+name: Deploy backend (Docker Swarm)
+
+# Manual-only until the pipeline is verified. To enable auto-deploy on push to main,
+# uncomment the `push:` block below (keep `workflow_dispatch` if you still want manual runs).
+on:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "backend/**"
+  #     - "deploy/docker-stack.yml"
+  #     - ".github/workflows/deploy-backend-swarm.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: billvault-api
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate configuration
+        run: |
+          test -n "${{ vars.GCP_PROJECT_ID }}" || (echo "Set GCP_PROJECT_ID repo variable" && exit 1)
+          test -n "${{ vars.GCP_REGION }}" || (echo "Set GCP_REGION repo variable" && exit 1)
+          test -n "${{ vars.GCP_AR_REPOSITORY }}" || (echo "Set GCP_AR_REPOSITORY repo variable" && exit 1)
+          test -n "${{ vars.GCP_VM_HOST }}" || (echo "Set GCP_VM_HOST repo variable" && exit 1)
+          test -n "${{ vars.GCP_VM_USER }}" || (echo "Set GCP_VM_USER repo variable" && exit 1)
+          test -n "${{ secrets.POSTGRES_PASSWORD }}" || (echo "Set POSTGRES_PASSWORD repo secret" && exit 1)
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build image
+        run: |
+          IMAGE_BASE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPOSITORY }}/${{ env.IMAGE_NAME }}"
+          echo "IMAGE_BASE=$IMAGE_BASE" >> "$GITHUB_ENV"
+          docker build \
+            -t "${IMAGE_BASE}:${{ github.sha }}" \
+            -t "${IMAGE_BASE}:latest" \
+            ./backend
+
+      - name: Push image
+        run: |
+          docker push "${IMAGE_BASE}:${{ github.sha }}"
+          docker push "${IMAGE_BASE}:latest"
+
+      - name: Copy stack file to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.GCP_VM_HOST }}
+          username: ${{ vars.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+          source: "deploy/docker-stack.yml"
+          target: "~/billvault-stack/"
+
+      - name: Deploy stack on VM
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          BILLVAULT_IMAGE: ${{ env.IMAGE_BASE }}:${{ github.sha }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER || 'billvault' }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB || 'billvault' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS || '*' }}
+          CORS_ALLOW_ALL_ORIGINS: ${{ vars.CORS_ALLOW_ALL_ORIGINS || 'true' }}
+          FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_CREDENTIALS_B64: ${{ secrets.FIREBASE_CREDENTIALS_B64 }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          BEHIND_REVERSE_PROXY: ${{ vars.BEHIND_REVERSE_PROXY || 'true' }}
+          CSRF_TRUSTED_ORIGINS: ${{ vars.CSRF_TRUSTED_ORIGINS }}
+        with:
+          host: ${{ vars.GCP_VM_HOST }}
+          username: ${{ vars.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+          envs: BILLVAULT_IMAGE,SECRET_KEY,POSTGRES_USER,POSTGRES_DB,POSTGRES_PASSWORD,ALLOWED_HOSTS,CORS_ALLOW_ALL_ORIGINS,FIREBASE_STORAGE_BUCKET,FIREBASE_CREDENTIALS_B64,GCP_SA_KEY,GCP_REGION,BEHIND_REVERSE_PROXY,CSRF_TRUSTED_ORIGINS
+          script: |
+            set -eo pipefail
+            mkdir -p ~/billvault-stack
+            SWARM_STATE="$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || echo inactive)"
+            if [ "$SWARM_STATE" != "active" ]; then
+              echo "Initializing Docker Swarm (one-time)..."
+              PRIVATE_IP="$(curl -fsS -H 'Metadata-Flavor: Google' \
+                http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip 2>/dev/null || hostname -I | awk '{print $1}')"
+              docker swarm init --advertise-addr "${PRIVATE_IP}" || docker swarm init
+            fi
+            echo "$GCP_SA_KEY" | docker login -u _json_key --password-stdin "${GCP_REGION}-docker.pkg.dev"
+            export POSTGRES_USER="${POSTGRES_USER:-billvault}"
+            export POSTGRES_DB="${POSTGRES_DB:-billvault}"
+            export DATABASE_URL="$(python3 -c "import urllib.parse, os; u=urllib.parse.quote_plus(os.environ['POSTGRES_USER']); p=urllib.parse.quote_plus(os.environ['POSTGRES_PASSWORD']); d=os.environ['POSTGRES_DB']; print(f'postgresql://{u}:{p}@db:5432/{d}')")"
+            export BILLVAULT_IMAGE SECRET_KEY DATABASE_URL ALLOWED_HOSTS CORS_ALLOW_ALL_ORIGINS
+            export POSTGRES_PASSWORD
+            export BEHIND_REVERSE_PROXY="${BEHIND_REVERSE_PROXY:-true}"
+            export CSRF_TRUSTED_ORIGINS="${CSRF_TRUSTED_ORIGINS:-}"
+            export FIREBASE_STORAGE_BUCKET="${FIREBASE_STORAGE_BUCKET:-}"
+            export FIREBASE_CREDENTIALS_B64="${FIREBASE_CREDENTIALS_B64:-}"
+            docker stack deploy -c ~/billvault-stack/deploy/docker-stack.yml billvault --with-registry-auth

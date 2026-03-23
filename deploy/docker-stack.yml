@@ -1,0 +1,81 @@
+# Docker Swarm stack — BillVault Django API + PostgreSQL
+#
+# Prerequisites on the GCP VM:
+#   1. Install Docker CE and run: docker swarm init
+#   2. Open firewall TCP 8000 (or put Nginx/HTTPS in front on 80/443)
+#   3. Export variables before `docker stack deploy` (GitHub Actions does this):
+#        BILLVAULT_IMAGE     — full image URI
+#        SECRET_KEY          — Django secret
+#        POSTGRES_USER       — DB role (repo variable; default billvault)
+#        POSTGRES_PASSWORD   — DB password (repo secret)
+#        POSTGRES_DB         — database name (repo variable; default billvault)
+#        DATABASE_URL        — built as postgresql://USER:PASS@db:5432/DB (same stack network)
+#      Optional: ALLOWED_HOSTS, CORS_ALLOW_ALL_ORIGINS, FIREBASE_*,
+#                BEHIND_REVERSE_PROXY (true behind nginx HTTPS), CSRF_TRUSTED_ORIGINS (comma URLs)
+#
+# Postgres is not published to the host; only the API service reaches it as hostname `db`.
+#
+# Deploy (after docker login to Artifact Registry on the manager node):
+#   docker stack deploy -c deploy/docker-stack.yml billvault --with-registry-auth
+#
+# Substitutions use the shell environment of the machine running `docker stack deploy`.
+
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    volumes:
+      - billvault-postgres:/var/lib/postgresql/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+      update_config:
+        order: start-first
+
+  billvault-api:
+    image: ${BILLVAULT_IMAGE}
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: ingress
+    environment:
+      DEBUG: "${DEBUG:-False}"
+      SECRET_KEY: "${SECRET_KEY}"
+      DATABASE_URL: "${DATABASE_URL}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-*}"
+      CORS_ALLOW_ALL_ORIGINS: "${CORS_ALLOW_ALL_ORIGINS:-true}"
+      FIREBASE_STORAGE_BUCKET: "${FIREBASE_STORAGE_BUCKET:-}"
+      FIREBASE_CREDENTIALS_B64: "${FIREBASE_CREDENTIALS_B64:-}"
+      GUNICORN_WORKERS: "${GUNICORN_WORKERS:-3}"
+      BEHIND_REVERSE_PROXY: "${BEHIND_REVERSE_PROXY:-true}"
+      CSRF_TRUSTED_ORIGINS: "${CSRF_TRUSTED_ORIGINS:-}"
+    volumes:
+      - billvault-media:/app/media
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+      update_config:
+        parallelism: 1
+        delay: 15s
+        failure_action: rollback
+        order: start-first
+
+volumes:
+  billvault-postgres:
+    driver: local
+  billvault-media:
+    driver: local
