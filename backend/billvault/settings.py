@@ -32,9 +32,25 @@ SECRET_KEY = os.getenv('SECRET_KEY','django-insecure-default-key-change-this')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = os.getenv('DEBUG','True') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+_allowed_hosts = os.getenv('ALLOWED_HOSTS', '*').strip()
+ALLOWED_HOSTS = (
+    ['*']
+    if _allowed_hosts == '*'
+    else [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
+)
+
+# Reverse proxy (nginx TLS termination)
+_behind_proxy = os.getenv('BEHIND_REVERSE_PROXY', '').strip().lower() in ('1', 'true', 'yes')
+if _behind_proxy:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+
+_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in _csrf_origins.split(',') if o.strip()
+] if _csrf_origins else []
 
 
 # Application definition
@@ -45,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
 
     # third party apps
@@ -60,6 +77,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,39 +106,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'billvault.wsgi.application'
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default=os.getenv('DATABASE_URL'),
-#         conn_max_age=0  # Set to 0 for Transaction Pooling!
-#     )
-# }
-
-# Database
+# Database — set DATABASE_URL for Postgres (Docker / production). Local dev falls back to SQLite.
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',
-#         'USER': 'postgres',
-#         'PASSWORD': 'billvault-auth-database',
-#         'HOST': 'db.avckeafmdqbxpxuobwyo.supabase.co',
-#         'PORT': '5432',
-#     }
-# }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.avckeafmdqbxpxuobwyo',  # important
-        'PASSWORD': 'billvault-auth-database',
-        'HOST': 'aws-1-ap-southeast-2.pooler.supabase.com',
-        'PORT': '6543',
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+_database_url = os.getenv('DATABASE_URL', '').strip()
+if _database_url:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=_database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -154,18 +157,23 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings (allows reat native to conect)
-CORS_ALLOW_ALL_ORIGINS = True   # for development only
+# CORS — restrict in production via CORS_ALLOWED_ORIGINS or explicit allow-all flag
+_cors_allow_all = os.getenv('CORS_ALLOW_ALL_ORIGINS', '').strip().lower()
+if _cors_allow_all in ('1', 'true', 'yes'):
+    CORS_ALLOW_ALL_ORIGINS = True
+elif DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    _cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', '').strip()
+    CORS_ALLOWED_ORIGINS = [
+        o.strip() for o in _cors_origins.split(',') if o.strip()
+    ]
 
 # REST framework settings
 REST_FRAMEWORK = {
@@ -190,12 +198,11 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Media files(Uploaded images will be stored here)
-import os
+# Media files (uploaded images)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Static Files( CSS, JAVASCRIPT, IMAGES)
+# Static files (WhiteNoise serves STATIC_ROOT when collected)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
