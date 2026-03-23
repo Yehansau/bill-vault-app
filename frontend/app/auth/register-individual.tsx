@@ -139,6 +139,10 @@ const RegisterScreen = () => {
         await AsyncStorage.setItem("full_name", name);
       }
 
+      if (email) {
+        await AsyncStorage.setItem("email", email);
+      }
+
       // Alert.alert("Success 🎉", "Your account has been created");
       router.push("/auth/registration-success");
     } catch {

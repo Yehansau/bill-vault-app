@@ -1,5 +1,5 @@
 import { Tabs, usePathname, Stack } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import analytics from "@/assets/images/icons/analytics.png";
 import files from "@/assets/images/icons/files.png";
@@ -111,6 +111,11 @@ export default function TabLayout() {
           name="profile"
           options={{
             headerShown: false,
+            headerTitle: "Profile",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Profile",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={profile} />

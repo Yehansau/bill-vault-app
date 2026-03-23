@@ -144,7 +144,11 @@ const UploadFAB = ({ onOpenChange }: Props) => {
           },
         ]}
       >
-        <Image source={iconBg} style={{ width: 95, height: 71 }} resizeMode="contain" />
+        <Image
+          source={iconBg}
+          style={{ width: 95, height: 71 }}
+          resizeMode="contain"
+        />
       </Animated.View>
 
       {/* Dark backdrop */}
@@ -157,7 +161,6 @@ const UploadFAB = ({ onOpenChange }: Props) => {
 
       {/* FAB + options — centred horizontally, sitting in tab bar zone */}
       <View style={styles.fabWrapper} pointerEvents="box-none">
-
         {/* Receipt option */}
         <Animated.View
           pointerEvents={open ? "auto" : "none"}
@@ -218,7 +221,10 @@ const UploadFAB = ({ onOpenChange }: Props) => {
 
         {/* The FAB — lifts up, purple circle + white circle appear behind it */}
         <Animated.View
-          style={[styles.fabAnimated, { transform: [{ translateY: fabTranslateY }] }]}
+          style={[
+            styles.fabAnimated,
+            { transform: [{ translateY: fabTranslateY }] },
+          ]}
         >
           {/* Purple circle (outermost) */}
           <Animated.View
@@ -243,12 +249,14 @@ const UploadFAB = ({ onOpenChange }: Props) => {
             {/* Upload icon rotates 45° to become × */}
             <Animated.Image
               source={upload}
-              style={[styles.uploadIcon, { transform: [{ rotate: iconRotation }] }]}
+              style={[
+                styles.uploadIcon,
+                { transform: [{ rotate: iconRotation }] },
+              ]}
               resizeMode="contain"
             />
           </TouchableOpacity>
         </Animated.View>
-
       </View>
     </>
   );
@@ -272,14 +280,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     zIndex: 20,
     width: 370,
-    height: 250,         // tall enough to contain the lifted options
-    paddingBottom: 18,   // aligns FAB centre with the tab bar centre (76px / 2 - a bit)
+    height: 250, // tall enough to contain the lifted options
+    paddingBottom: 18, // aligns FAB centre with the tab bar centre (76px / 2 - a bit)
   },
 
   // Options start stacked directly on top of the FAB position, then animate away
   optionAnchor: {
     position: "absolute",
-    bottom: 18,          // same as fabWrapper paddingBottom
+    bottom: 18, // same as fabWrapper paddingBottom
     alignItems: "center",
   },
   optionCircle: {
@@ -317,7 +325,7 @@ const styles = StyleSheet.create({
   // iconBg wrapper — below the backdrop (zIndex 9), lifts with the button
   iconBgWrapper: {
     position: "absolute",
-    bottom: 0,          // vertically centred in the 76px tab bar
+    bottom: 0, // vertically centred in the 76px tab bar
     alignSelf: "center",
     zIndex: 9,
     alignItems: "center",

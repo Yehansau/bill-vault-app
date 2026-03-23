@@ -28,4 +28,5 @@ staticfiles/
 .DS_Store
 Thumbs.db
 
+#firebase
 firebase-credentials.json

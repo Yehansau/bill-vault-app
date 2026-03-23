@@ -99,5 +99,5 @@ class Warranty(models.Model):
     
     def save(self, *args, **kwargs):
         if self.purchase_date and self.warranty_period_months:
-            self.expiry_date = self.purchase_date + relativedelta(months=self.warranty_period_months)
+            self.expiry_date = self.purchase_date + relativedelta(months=int(self.warranty_period_months))
         super().save(*args, **kwargs)
