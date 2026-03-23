@@ -47,6 +47,7 @@ import { Warranty } from "../../types/warranty.types";
 
 // Firebase auth
 import { auth } from "../../firebaseConfig";
+// eslint-disable-next-line import/no-unresolved
 import { onAuthStateChanged } from "firebase/auth";
 
 // Notification service
@@ -102,7 +103,7 @@ export default function App() {
   // onAuthStateChanged waits for Firebase to confirm auth state
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: { uid: any }) => {
       if (user) {
         console.log("🔑 My User ID:", user.uid);
 
