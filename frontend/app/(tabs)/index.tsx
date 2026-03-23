@@ -19,8 +19,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
-*/
+});*/
 
 // app/(tabs)/index.tsx
 
@@ -28,10 +27,7 @@ import arrow from "@/assets/images/arrow.png";
 import bell from "@/assets/images/icons/bell.png";
 import vault from "@/assets/images/vault.png";
 import FilesCard from "@/components/home/RecentBillCard";
-import ProgressBar from "@/components/home/ProgressBar";
-import SearchBar from "@/components/home/SearchBar";
 import WarrantyCard from "@/components/home/WarrantyTrackerCard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, useRouter } from "expo-router";
 import {
@@ -45,14 +41,27 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 
-// Warranty service and types from the files we created
+// Warranty service and types
 import { getWarranties } from "../../services/warrantyService";
 import { Warranty } from "../../types/warranty.types";
+
+// Firebase auth
+import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+
+// Notification service
+import {
+  requestNotificationPermission,
+  scheduleAllWarrantyNotifications,
+} from "../../services/notificationService";
 
 // ─────────────────────────────────────────
 // Small reusable divider line between sections
 // ─────────────────────────────────────────
 import { router } from "expo-router";
+import SearchBar from "@/components/home/SearchBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ProgressBar from "@/components/home/ProgressBar";
 
 const HorizontalRule = () => {
   return <View className="w-3/4 bg-gray-200 h-1 my-4 mx-auto" />;
@@ -61,7 +70,7 @@ const HorizontalRule = () => {
 export default function App() {
   const router = useRouter();
 
-  // ========== WARRANTY STATE ==========
+  // ========== STATE ==========
 
   // Stores first 4 warranties for the preview section
   const [warranties, setWarranties] = useState<Warranty[]>([]);
@@ -69,39 +78,56 @@ export default function App() {
   // Controls the loading spinner while Firebase fetches data
   const [loadingWarranties, setLoadingWarranties] = useState(true);
 
-  // ========== FETCH WARRANTIES ON LOAD ==========
-
-  useEffect(() => {
-    fetchWarranties();
-  }, []);
+  const [userName, setUserName] = useState("");
+  // ========== FETCH WARRANTIES ==========
 
   const fetchWarranties = async () => {
     try {
       setLoadingWarranties(true);
 
-      // Call the service from File 3 — fetches all warranties
+      // Fetch all warranties from Firebase
       const allWarranties = await getWarranties();
 
       // Only show first 4 on HomeScreen preview
-      // User can tap "View All" to see everything
       setWarranties(allWarranties.slice(0, 4));
     } catch (error) {
-      console.error("Error fetching warranties for HomeScreen:", error);
+      console.error("Error fetching warranties:", error);
     } finally {
       setLoadingWarranties(false);
     }
   };
 
-  // ========== DATE FORMATTING ==========
-  // Shows current date in header e.g. "Friday, 20th March"
+  // ========== WAIT FOR AUTH THEN FETCH ==========
+  // auth.currentUser is null on first render even if logged in
+  // onAuthStateChanged waits for Firebase to confirm auth state
 
-  const [userName, setUserName] = useState("");
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log("🔑 My User ID:", user.uid);
+
+        // Step 1: Ask for notification permission
+        await requestNotificationPermission();
+
+        // Step 2: Fetch warranties and schedule notifications
+        fetchWarranties();
+      } else {
+        console.log("❌ No user logged in");
+        setLoadingWarranties(false);
+      }
+    });
+
+    // Cleanup listener when component unmounts
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem("full_name").then((name) =>
       setUserName(name || "there"),
     );
   }, []);
+
+  // ========== DATE FORMATTING ==========
 
   const getOrdinal = (day: number) => {
     if (day > 3 && day < 21) return "th";
@@ -123,13 +149,11 @@ export default function App() {
   const month = date.toLocaleDateString("en-US", { month: "long" });
   const formattedDate = `${day}${getOrdinal(day)} ${month}`;
 
-  // Dummy data for recent uploads section (unchanged from original)
+  // Dummy data for recent uploads section
   const recentUploadsData = ["upload 1", "upload 2", "upload 3", "upload 4"];
 
   // ========== NAVIGATION ==========
 
-  // Navigates to the full warranty list screen
-  // Works even if warranties array is empty
   const handleViewAllWarranties = () => {
     router.push("/warranty/warranty-tracker");
   };
@@ -154,7 +178,6 @@ export default function App() {
         </View>
 
         {/* ── Greeting ── */}
-        <Text className="text-2xl font-bold mt-2">Hi John!</Text>
         <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
         <SearchBar />
 

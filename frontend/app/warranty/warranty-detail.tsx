@@ -1,6 +1,6 @@
 // app/warranty/warranty-detail.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,17 +10,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
-import { Warranty } from '../../types/warranty.types';
-import { getWarrantyById, deleteWarranty } from '../../services/warrantyService';
+import { Warranty } from "../../types/warranty.types";
+import {
+  getWarrantyById,
+  deleteWarranty,
+} from "../../services/warrantyService";
 import {
   formatDaysRemaining,
   formatDate,
   getStatusColor,
   getStatusText,
-} from '../../utils/warrantyCalculations';
+} from "../../utils/warrantyCalculations";
 
 export default function WarrantyDetailScreen() {
   const router = useRouter();
@@ -50,10 +53,9 @@ export default function WarrantyDetailScreen() {
       // Pass the id we received from the list screen
       const data = await getWarrantyById(id);
       setWarranty(data);
-
     } catch (error) {
-      console.error('Error fetching warranty details:', error);
-      Alert.alert('Error', 'Failed to load warranty details.');
+      console.error("Error fetching warranty details:", error);
+      Alert.alert("Error", "Failed to load warranty details.");
     } finally {
       setLoading(false);
     }
@@ -71,18 +73,18 @@ export default function WarrantyDetailScreen() {
   const handleDelete = () => {
     // Show a confirmation popup before deleting
     Alert.alert(
-      'Delete Warranty',
+      "Delete Warranty",
       `Are you sure you want to delete the warranty for "${warranty?.productName}"? This cannot be undone.`,
       [
         {
           // Cancel button — does nothing
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
           // Confirm delete button
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               setDeleting(true);
@@ -92,29 +94,31 @@ export default function WarrantyDetailScreen() {
 
               if (result.success) {
                 Alert.alert(
-                  'Deleted',
-                  'Warranty has been deleted successfully.',
+                  "Deleted",
+                  "Warranty has been deleted successfully.",
                   [
                     {
-                      text: 'OK',
+                      text: "OK",
                       // Go back to the list screen after deletion
                       onPress: () => router.back(),
                     },
-                  ]
+                  ],
                 );
               } else {
-                Alert.alert('Error', result.error || 'Failed to delete warranty.');
+                Alert.alert(
+                  "Error",
+                  result.error || "Failed to delete warranty.",
+                );
               }
-
             } catch (error) {
-              console.error('Error deleting warranty:', error);
-              Alert.alert('Error', 'Something went wrong. Please try again.');
+              console.error("Error deleting warranty:", error);
+              Alert.alert("Error", "Something went wrong. Please try again.");
             } finally {
               setDeleting(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -138,7 +142,7 @@ export default function WarrantyDetailScreen() {
         <Text style={styles.errorEmoji}>⚠️</Text>
         <Text style={styles.errorTitle}>Warranty Not Found</Text>
         <Text style={styles.errorSubtitle}>
-          This warranty may have been deleted or doesn't exist.
+          This warranty may have been deleted or doesn&apos;t exist.
         </Text>
         <TouchableOpacity
           style={styles.backButton}
@@ -163,10 +167,8 @@ export default function WarrantyDetailScreen() {
 
   return (
     <View style={styles.container}>
-
       {/* Header — colour changes based on warranty status */}
       <View style={[styles.header, { backgroundColor: statusColor }]}>
-
         {/* Back button */}
         <TouchableOpacity
           style={styles.backIconButton}
@@ -186,7 +188,6 @@ export default function WarrantyDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-
         {/* Product Image Section */}
         <View style={styles.imageSection}>
           {warranty.productImage ? (
@@ -218,7 +219,6 @@ export default function WarrantyDetailScreen() {
 
         {/* Details Card */}
         <View style={styles.detailsSection}>
-
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Purchase Date</Text>
             <Text style={styles.detailValue}>{purchaseText}</Text>
@@ -251,7 +251,6 @@ export default function WarrantyDetailScreen() {
               <Text style={styles.detailValue}>{warranty.serialNumber}</Text>
             </View>
           )}
-
         </View>
 
         {/* Delete Button */}
@@ -269,7 +268,6 @@ export default function WarrantyDetailScreen() {
             )}
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </View>
   );
@@ -280,14 +278,14 @@ export default function WarrantyDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
   },
 
   // Header — background color is set dynamically based on status
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
@@ -297,19 +295,19 @@ const styles = StyleSheet.create({
   backIconButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   backIcon: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   headerSpacer: {
     width: 40,
@@ -321,7 +319,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   // Image
@@ -335,9 +333,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   imagePlaceholder: {
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderText: {
     fontSize: 80,
@@ -346,9 +344,9 @@ const styles = StyleSheet.create({
   // Product name + status
   productName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#111827",
+    textAlign: "center",
     marginBottom: 12,
     paddingHorizontal: 20,
   },
@@ -360,85 +358,85 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   daysText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 32,
   },
 
   // Details card
   detailsSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    width: '90%',
-    shadowColor: '#000',
+    width: "90%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F3F4F6",
   },
   detailLabel: {
     fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
   detailValue: {
     fontSize: 14,
-    color: '#111827',
-    fontWeight: '600',
+    color: "#111827",
+    fontWeight: "600",
   },
 
   // Delete button
   actionsSection: {
-    width: '90%',
+    width: "90%",
     marginHorizontal: 20,
   },
   deleteButton: {
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
     paddingVertical: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   deleteButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 
   // Loading state
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 
   // Error state
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
     paddingHorizontal: 40,
   },
   errorEmoji: {
@@ -447,25 +445,25 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontWeight: "bold",
+    color: "#111827",
     marginBottom: 8,
   },
   errorSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: "#7C3AED",
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 12,
   },
   backButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });
