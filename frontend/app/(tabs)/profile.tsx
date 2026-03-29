@@ -10,6 +10,7 @@ import {
   View,
   SafeAreaView,
   Alert,
+  TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -121,6 +122,9 @@ const ProfileScreen: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [email, setEmail]       = useState("");
 
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  
   // Lifecycle
   useEffect(() => {
     // Debug: log all stored keys to the console during development
@@ -166,6 +170,15 @@ const ProfileScreen: React.FC = () => {
       setPhoto(result.assets[0].uri);
     }
   };
+  
+  const handleSaveName = async () => {
+    const trimmed = editedName.trim();
+    if (trimmed) {
+      await AsyncStorage.setItem("full_name", trimmed);
+      setUserName(trimmed);
+    }
+    setIsEditingName(false);
+  };    
 
   // Render
   return (
@@ -205,7 +218,22 @@ const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.userName}>{userName}</Text>
+          {isEditingName ? (
+            <TextInput
+              value={editedName}
+              onChangeText={setEditedName}
+              style={styles.nameInput}
+              autoFocus
+              onBlur={handleSaveName}   // save when user taps away
+            />
+          ) : (
+            <TouchableOpacity onPress={() => {
+              setEditedName(userName);
+              setIsEditingName(true);
+            }}>
+              <Text style={styles.userName}>{userName}</Text>
+            </TouchableOpacity>
+          )}
           <Text style={styles.userEmail}>{email}</Text>
 
           {/* Gradient badge indicating the current account tier */}
@@ -571,6 +599,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.white,  // white ring separates icon from avatar edge
   },
+
+  nameInput: {
+  fontSize: 20,
+  fontWeight: "700",
+  color: COLORS.text,
+  borderBottomWidth: 1.5,
+  borderBottomColor: COLORS.primary,
+  minWidth: 150,
+  textAlign: "center",
+  paddingBottom: 2,
+  },
+
 });
 
 export default ProfileScreen;
