@@ -86,7 +86,7 @@ const LoginScreen = () => {
         {/* Email input — wrapped in a View to apply bottom margin independently */}
         <View style={styles.inputGap}>
           <CustomInput
-            placeholder="Username"
+            placeholder="Email"
             value={email}
             onChangeText={setEmail}
           />
@@ -142,9 +142,6 @@ const LoginScreen = () => {
           style={{ marginTop: 30 }}
           onPress={() => router.push("/(tabs)/profile" as any)}
         >
-          <Text style={{ color: "#7C3AED", fontWeight: "700", fontSize: 14 }}>
-            Profile
-          </Text>
         </TouchableOpacity>
 
       </View>
