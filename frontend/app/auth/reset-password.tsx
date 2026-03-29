@@ -95,7 +95,7 @@ const ResetPasswordScreen: React.FC = () => {
         {/* Disabled implicitly via the loading prop while the request is in-flight */}
         <View style={styles.buttonWrapper}>
           <CustomButton
-            title="Send Instructions"
+            title="Send Email"
             onPress={handleSend}
             loading={loading}
             style={styles.sendButton}
