@@ -160,3 +160,53 @@ def login(request):
         "refresh": str(refresh),
         "user": user_data
     })
+
+#Reset password endpoint
+
+@api_view(['POST'])
+def reset_password(request):
+    email = request.data.get('email', '').strip()
+    reset_token = request.data.get('reset_token', '').strip()
+    new_password = request.data.get('newPassword', '')
+    confirm_password = request.data.get('confirmPassword', '')
+
+    errors = {}
+
+    if not email:
+        errors['emailError'] = "Email is required"
+    if not reset_token:
+        errors['tokenError'] = "Reset token is required"
+    if not new_password:
+        errors['passwordError'] = "New password is required"
+    elif len(new_password) < 8:
+        errors['passwordError'] = "Password must be at least 8 characters"
+    if not confirm_password:
+        errors['confirmPasswordError'] = "Please confirm your password"
+    elif new_password != confirm_password:
+        errors['confirmPasswordError'] = "Passwords do not match"
+
+    if errors:
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate reset token
+    cached_token = cache.get(f"password_reset_token_{email}")
+    if not cached_token or cached_token != reset_token:
+        return Response(
+            {"tokenError": "Invalid or expired reset token"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Update the password
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"emailError": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user.set_password(new_password)
+    user.save()
+
+    # Invalidate tokens so they can't be reused
+    cache.delete(f"password_reset_{email}")
+    cache.delete(f"password_reset_token_{email}")
+
+    return Response({"message": "Password reset successfully"})
