@@ -123,4 +123,5 @@ export const warrantiesAPI = {
 export const analyticsAPI = {
   // Get analytics data
   get: () => api.get("/analytics/"),
+  getSummary: () => api.get("/analytics/summary/"),
 };
