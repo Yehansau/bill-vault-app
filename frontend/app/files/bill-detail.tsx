@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -92,22 +92,22 @@ export default function BillDetailScreen() {
   const [error, setError] = useState("");
   const [imageModal, setImageModal] = useState(false);
 
-  const loadBill = async () => {
+  const loadBill = useCallback(async () => {
     try {
-      setError("");
-      const res = await api.get(`/bills/${id}/`);
-      setBill(res.data as Bill);
+        setError("");
+        const res = await api.get(`/bills/${id}/`);
+        setBill(res.data as Bill);
     } catch (e: any) {
-      setError("Could not load bill details.");
-      console.error("Bill detail error:", e);
+        setError("Could not load bill details.");
+        console.error("Bill detail error:", e);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+}, [id]);
 
-  useEffect(() => {
+useEffect(() => {
     if (id) loadBill();
-  }, [id]);
+}, [id, loadBill]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
