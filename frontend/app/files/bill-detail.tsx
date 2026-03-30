@@ -94,20 +94,20 @@ export default function BillDetailScreen() {
 
   const loadBill = useCallback(async () => {
     try {
-        setError("");
-        const res = await api.get(`/bills/${id}/`);
-        setBill(res.data as Bill);
+      setError("");
+      const res = await api.get(`/bills/${id}/`);
+      setBill(res.data as Bill);
     } catch (e: any) {
-        setError("Could not load bill details.");
-        console.error("Bill detail error:", e);
+      setError("Could not load bill details.");
+      console.error("Bill detail error:", e);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-}, [id]);
+  }, [id]);
 
-useEffect(() => {
+  useEffect(() => {
     if (id) loadBill();
-}, [id, loadBill]);
+  }, [id, loadBill]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
@@ -129,7 +129,10 @@ useEffect(() => {
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
         <Text style={styles.errorEmoji}>⚠️</Text>
         <Text style={styles.errorText}>{error || "Bill not found"}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.errorButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.errorButton}
+        >
           <Text style={styles.errorButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -161,7 +164,10 @@ useEffect(() => {
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Bill Details</Text>
@@ -197,7 +203,9 @@ useEffect(() => {
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Text style={styles.imagePlaceholderEmoji}>🧾</Text>
-                <Text style={styles.imagePlaceholderText}>No image available</Text>
+                <Text style={styles.imagePlaceholderText}>
+                  No image available
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -218,7 +226,9 @@ useEffect(() => {
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Total Amount</Text>
           <Text style={styles.amountValue}>{formattedAmount}</Text>
-          <Text style={styles.merchantName}>{bill.merchant || "Unknown Merchant"}</Text>
+          <Text style={styles.merchantName}>
+            {bill.merchant || "Unknown Merchant"}
+          </Text>
         </View>
 
         {/* ── Bill Information ─────────────────────────────────────────────── */}
@@ -228,7 +238,10 @@ useEffect(() => {
           <InfoRow label="Merchant" value={bill.merchant || "Unknown"} />
           <InfoRow label="Date" value={formattedDate} />
           <InfoRow label="Language" value={language} />
-          <InfoRow label="Payment Method" value={bill.payment_method || uploadType} />
+          <InfoRow
+            label="Payment Method"
+            value={bill.payment_method || uploadType}
+          />
         </View>
 
         {/* ── Items ───────────────────────────────────────────────────────── */}
