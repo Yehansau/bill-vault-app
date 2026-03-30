@@ -58,7 +58,7 @@ def extract_date(text: str) -> str:
 def extract_total(text: str) -> str:
     """
     Find and return the total amount from OCR text.
-    Tries Grand Total first, then Net Amount, then TOTAL.
+    Tries Grand Total first, then Net Amount, SUB TOTAL then TOTAL.
     """
     patterns = [
         r'Grand\s*Total\s*[:\s]*\(?(?:LKR)?\)?\s*([\d,]+\.?\d{0,2})',  # Grand Total (LKR)2,400.00
