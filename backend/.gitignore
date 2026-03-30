@@ -30,3 +30,5 @@ Thumbs.db
 
 #firebase
 firebase-credentials.json
+venv/
+frontend/venv/

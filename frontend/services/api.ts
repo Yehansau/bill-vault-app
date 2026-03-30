@@ -1,16 +1,13 @@
 // Backend API calls
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 import { SaveBillPayload } from "@/types/bill.types";
 
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
-<<<<<<< HEAD
-const API_BASE_URL = "http://10.79.228.254:8000/api";
-=======
 
 const API_BASE_URL = "http://10.79.228.249:8000/api";
->>>>>>> main
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,26 +41,26 @@ api.interceptors.response.use(
   async (error) => {
     // No response → network issue
     if (!error.response) {
-      alert("Network error. Please check your connection.");
+      Alert.alert("Network Error", "Please check your connection and try again.");
       console.error("Network error:", error.message);
-      return Promise.reject(error); // ← throw it so the hook catches it;
+      return Promise.reject(error);
     }
+
     console.error("Error response data:", JSON.stringify(error.response.data));
 
     const status = error.response.status;
     const data = error.response.data;
 
     if (status === 401 || status === 400) {
-      // Expected auth errors
+      // Expected auth errors — let screen logic handle the alert
       console.warn("Auth error:", data);
-      // Alert should be shown in screen logic OR here (pick one)
-      return Promise.reject(error); // ← throw it
+      return Promise.reject(error);
     }
 
     // Unexpected server errors
-    alert("Something went wrong. Please try again.");
+    Alert.alert("Something went wrong", "Please try again later.");
     console.error("Server error:", error);
-    return Promise.reject(error); // ← throw it
+    return Promise.reject(error);
   },
 );
 
@@ -94,7 +91,6 @@ export const billsAPI = {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        // Authorization header is automatically added by your interceptor
       },
     }),
 
@@ -110,6 +106,11 @@ export const billsAPI = {
   // Add warranty to a bill item
   addWarranty: (billId: string, data: any) =>
     api.post(`/bills/${billId}/warranty/`, data),
+
+  // Files screen
+  folders: () => api.get("/bills/folders/"),
+  folderBills: (category: string) => api.get(`/bills/folders/${category}/`),
+  storage: () => api.get("/bills/storage/"),
 };
 
 export const warrantiesAPI = {

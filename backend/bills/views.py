@@ -430,3 +430,145 @@ def get_warranty_detail(request, id):
         return Response({'error': 'Warranty not found'}, status=status.HTTP_404_NOT_FOUND)
 
     return Response(WarrantySerializer(warranty).data)
+
+    # ──────────────────────────────────────────────────────
+# FILES SCREEN — folders, storage stats
+# ──────────────────────────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_folders(request):
+    """
+    GET /api/bills/folders/
+
+    Returns all category folders for the logged-in user.
+    A folder = a unique category from BillItem.
+    Shows how many bills are in each folder.
+
+    Response:
+        [
+            { "name": "Groceries", "count": 28, "last_updated": "2026-03-22" },
+            { "name": "Electronics", "count": 14, "last_updated": "2026-03-20" },
+            ...
+        ]
+    """
+    from django.db.models import Count, Max
+
+    # Get all categories from BillItems belonging to this user's bills
+    folders = (
+        BillItem.objects
+        .filter(bill__user=request.user, bill__status='completed')
+        .values('category')
+        .annotate(
+            count=Count('bill', distinct=True),
+            last_updated=Max('bill__created_at'),
+        )
+        .order_by('-count')
+    )
+
+    result = []
+    for folder in folders:
+        result.append({
+            'name': folder['category'],
+            'count': folder['count'],
+            'last_updated': folder['last_updated'].date().isoformat() if folder['last_updated'] else None,
+        })
+
+    return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_folder_bills(request, category):
+    """
+    GET /api/bills/folders/<category>/
+
+    Returns all bills that have at least one item in the given category.
+    Used when user taps on a folder to see the bills inside.
+
+    Response:
+        [
+            {
+                "id": "uuid",
+                "merchant": "Cargills Food City",
+                "bill_date": "2026-02-23",
+                "total_amount": "285.00",
+                "firebase_image_url": "https://...",
+                "created_at": "2026-02-23T18:29:31Z"
+            },
+            ...
+        ]
+    """
+    # Get bills that have at least one item in this category
+    bills = (
+        Bill.objects
+        .filter(
+            user=request.user,
+            status='completed',
+            items__category=category,
+        )
+        .distinct()
+        .order_by('-created_at')
+    )
+
+    result = []
+    for bill in bills:
+        result.append({
+            'id': str(bill.id),
+            'merchant': bill.merchant,
+            'bill_date': bill.bill_date.isoformat() if bill.bill_date else None,
+            'total_amount': str(bill.total_amount) if bill.total_amount else None,
+            'firebase_image_url': bill.firebase_image_url,
+            'created_at': bill.created_at.isoformat(),
+        })
+
+    return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_storage_stats(request):
+    """
+    GET /api/bills/storage/
+
+    Returns storage usage stats for the logged-in user.
+    Estimates storage based on number of bills (avg 300KB per image).
+
+    Response:
+        {
+            "used_mb": 85.6,
+            "total_mb": 20480,
+            "used_percent": 67,
+            "bill_count": 28,
+            "this_week": 3
+        }
+    """
+    from datetime import timedelta
+    from django.utils import timezone
+
+    AVG_IMAGE_SIZE_MB = 0.3   # average 300KB per bill image
+    TOTAL_STORAGE_MB  = 20480 # 20 GB free plan
+
+    bill_count = Bill.objects.filter(
+        user=request.user,
+        status='completed'
+    ).count()
+
+    # Bills uploaded in last 7 days
+    week_ago = timezone.now() - timedelta(days=7)
+    this_week = Bill.objects.filter(
+        user=request.user,
+        status='completed',
+        created_at__gte=week_ago
+    ).count()
+
+    used_mb = round(bill_count * AVG_IMAGE_SIZE_MB, 1)
+    used_percent = round((used_mb / TOTAL_STORAGE_MB) * 100, 1)
+
+    return Response({
+        'used_mb': used_mb,
+        'total_mb': TOTAL_STORAGE_MB,
+        'used_percent': used_percent,
+        'bill_count': bill_count,
+        'this_week': this_week,
+    })
