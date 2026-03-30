@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import {
     View,
     Text,
@@ -121,29 +122,29 @@ export default function FolderScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
 
-    const loadBills = async () => {
-        try {
-            setError("");
-            const res = await api.get(`/bills/folders/${category}/`);
-            setBills(res.data as Bill[]);
-        } catch (e: any) {
-            setError("Could not load bills. Pull down to retry.");
-            console.error("Folder screen error:", e);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    useEffect(() => {
-        if (category) loadBills();
-    }, [category]);
+    
 
     const onRefresh = () => {
         setRefreshing(true);
         loadBills();
     };
+const loadBills = useCallback(async () => {
+    try {
+        setError("");
+        const res = await api.get(`/bills/folders/${category}/`);
+        setBills(res.data as Bill[]);
+    } catch (e: any) {
+        setError("Could not load bills. Pull down to retry.");
+        console.error("Folder screen error:", e);
+    } finally {
+        setLoading(false);
+        setRefreshing(false);
+    }
+}, [category]);
 
+useEffect(() => {
+    if (category) loadBills();
+}, [category, loadBills]);
     // ── Computed stats ────────────────────────────────────────────────────────
     const totalFiles = bills.length;
     const mbUsed = (bills.length * 0.3).toFixed(1);
