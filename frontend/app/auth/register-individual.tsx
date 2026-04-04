@@ -130,8 +130,10 @@ const RegisterScreen = () => {
         headers: { Authorization: undefined },
       });
 
-      if (response.data?.token) {
-        await AsyncStorage.setItem("token", response.data.access);
+      const data = response.data as { token?: string; access?: string };
+
+      if (data?.token) {
+        await AsyncStorage.setItem("token", data.access ?? "");
       }
 
       // Save the name the user typed so home screen can show "Hi [name]!"

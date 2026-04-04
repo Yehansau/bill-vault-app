@@ -7,7 +7,7 @@ import { SaveBillPayload } from "@/types/bill.types";
 // IMPORTANT: Change this to YOUR computer's IP address
 // Find IP: Windows (ipconfig) | Mac (ifconfig) | Linux (hostname -I)
 
-const API_BASE_URL = "http://10.79.228.249:8000/api";
+const API_BASE_URL = "https://bill-vault.com/api/";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -35,34 +35,70 @@ api.interceptors.request.use(
   },
 );
 
-// Handle response errors
+// Handle response errors + auto token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     // No response → network issue
     if (!error.response) {
       Alert.alert("Network Error", "Please check your connection and try again.");
-      console.error("Network error:", error.message);
       return Promise.reject(error);
     }
 
     console.error("Error response data:", JSON.stringify(error.response.data));
 
     const status = error.response.status;
-    const data = error.response.data;
+    const originalRequest = error.config;
 
-    if (status === 401 || status === 400) {
-      // Expected auth errors — let screen logic handle the alert
-      console.warn("Auth error:", data);
+    // Token expired → try to refresh
+    if (status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = await AsyncStorage.getItem("refresh_token");
+
+        if (!refreshToken) {
+          // No refresh token → force logout
+          await handleLogout();
+          return Promise.reject(error);
+        }
+
+        // Call your refresh endpoint
+        const res = await axios.post(`${API_BASE_URL}auth/token/refresh/`, {
+          refresh: refreshToken,
+        });
+
+        const newAccessToken = (res.data as { access: string }).access;
+
+        // Save new token
+        await AsyncStorage.setItem("token", newAccessToken);
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        // Refresh also failed → force logout
+        await handleLogout();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    if (status === 400) {
+      console.warn("Auth error:", error.response.data);
       return Promise.reject(error);
     }
 
-    // Unexpected server errors
     Alert.alert("Something went wrong", "Please try again later.");
-    console.error("Server error:", error);
     return Promise.reject(error);
   },
 );
+
+const handleLogout = async () => {
+  await AsyncStorage.multiRemove(["token", "refresh_token", "email", "full_name"]);
+  Alert.alert("Session Expired", "Please log in again.");
+  // If you have a router ref or navigation, redirect to login here
+};
 
 export default api;
 
