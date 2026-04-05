@@ -1,8 +1,7 @@
 import { CustomButton } from "@/components/ui";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Background } from "@react-navigation/elements";
 
 // RegistrationSuccessScreen
 // Confirmation screen shown immediately after a successful account creation.
