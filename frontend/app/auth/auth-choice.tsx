@@ -23,14 +23,14 @@ const AuthChoiceScreen = () => {
   const handleLogin = () => {
     setLoginLoading(true);
     setTimeout(() => setLoginLoading(false), 2000);
-    router.push("./login");
+    router.replace("./login");
   };
 
   // Briefly shows a loading state, then navigates to the account-type picker
   const handleCreateAccount = () => {
     setCreateLoading(true);
     setTimeout(() => setCreateLoading(false), 2000);
-    router.push("./account-type");
+    router.replace("./account-type");
   };
 
   // Render
