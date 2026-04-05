@@ -57,7 +57,7 @@ const LoginScreen = () => {
       }
 
       // Navigate into the main tab navigator on successful login
-      router.push("/(tabs)");
+      router.replace("/(tabs)");
     } catch (error: any) {
       // Surface a generic message — avoid leaking which field was wrong
       Alert.alert("Login Failed", "Invalid email or password");
@@ -135,14 +135,6 @@ const LoginScreen = () => {
           <Image style={styles.socialIcon} source={emailImage} />
           <Image style={styles.socialIcon} source={facebookImage} />
         </View>
-
-        {/* Dev Shortcut: jump directly to the profile tab 
-             TODO: remove before production release */}
-        <TouchableOpacity
-          style={{ marginTop: 30 }}
-          onPress={() => router.push("/(tabs)/profile" as any)}
-        >
-        </TouchableOpacity>
 
       </View>
     </LinearGradient>
