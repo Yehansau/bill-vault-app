@@ -1,5 +1,3 @@
-// utils/warrantyCalculations.ts
-
 /**
  * ============================================================================
  * WARRANTY CALCULATION UTILITIES
