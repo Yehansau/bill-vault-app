@@ -126,7 +126,7 @@ const BudgetScreen = () => {
           <Text className="text-md text-black">%</Text>
         </View>
         <Text className="text-sm text-black">
-          You'll receive notifications when your spending reaches {alertThreshold}% of your budget
+          You&apos;ll receive notifications when your spending reaches {alertThreshold}% of your budget
         </Text>
       </View>
 
