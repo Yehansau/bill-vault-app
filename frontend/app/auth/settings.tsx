@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -40,10 +41,27 @@ const SettingsScreen: React.FC = () => {
   // Handlers
 
   // Wipes all locally stored data (token, user info) then redirects to login
-  const handleLogout = async () => {
-    await AsyncStorage.clear();
-    router.push("/auth/login" as any);
-  };
+  const handleLogout = () => {
+  Alert.alert(
+    "Log Out",                    // ← title
+    "Are you sure you want to log out?",  // ← message
+    [
+      {
+        text: "Cancel",           // ← first button
+        style: "cancel",          // ← styled as cancel (grey on iOS)
+        onPress: () => {},        // ← does nothing, just closes the dialog
+      },
+      {
+        text: "Log Out",          // ← second button
+        style: "destructive",     // ← styled as red on iOS (warns the user)
+        onPress: async () => {    // ← actual logout happens here
+          await AsyncStorage.clear();
+          router.replace("/auth/login" as any);
+        },
+      },
+    ]
+  );
+};
 
   // Render 
   return (
@@ -104,6 +122,7 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   // Off-white background differentiates the page from the white list card
   container: {
+    flex: 1,
     backgroundColor: COLORS.background,
   },
 
@@ -166,10 +185,10 @@ const styles = StyleSheet.create({
   // of the screen on most devices — consider replacing with a flex layout
   // or KeyboardAvoidingView for more robust positioning across screen sizes
   logoutWrapper: {
-    position: "absolute",
-    bottom: -350,
-    left: 16,
-    right: 16,
+    flex: 1,                    // ← takes remaining space
+    justifyContent: "flex-end", // ← pushes button to bottom
+    paddingHorizontal: 16,
+    paddingBottom: 30,          // ← breathing room from screen edge
   },
   logoutButton: {
     backgroundColor: "#A78BCA",   // lighter purple to distinguish from primary actions
