@@ -7,7 +7,6 @@
     "icon": "./assets/images/LogoPicture.png",
     "scheme": "billvault",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -16,7 +15,6 @@
     },
     "android": {
       "adaptiveIcon": {
-        "usesCleartextTraffic": true,
         "foregroundImage": "./assets/images/LogoPicture.png",
         "backgroundColor": "#6C63FF"
       },

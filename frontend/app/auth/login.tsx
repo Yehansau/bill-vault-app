@@ -17,16 +17,16 @@ import { authAPI } from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
-// LoginScreen 
+// LoginScreen
 // Handles user authentication: collects credentials, calls the login API,
 // persists the returned token + user data, then navigates into the main app.
 const LoginScreen = () => {
-  // State 
-  const [email, setEmail]       = useState("");
+  // State
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading]   = useState(false); // disables the button while the request is in-flight
+  const [loading, setLoading] = useState(false); // disables the button while the request is in-flight
 
-  // Handlers 
+  // Handlers
 
   const handleLogin = async () => {
     // Guard: both fields must be filled before hitting the API
@@ -53,7 +53,10 @@ const LoginScreen = () => {
 
       // Store the full name if the API returned one (used in the profile header)
       if (response.data.user["full_name"]) {
-        await AsyncStorage.setItem("full_name", response.data.user["full_name"]);
+        await AsyncStorage.setItem(
+          "full_name",
+          response.data.user["full_name"],
+        );
       }
 
       // Navigate into the main tab navigator on successful login
@@ -67,11 +70,10 @@ const LoginScreen = () => {
     }
   };
 
-  // Render 
+  // Render
   return (
     // Vertical purple-to-deep-purple gradient fills the whole screen
     <LinearGradient colors={["#944ABC", "#3B0856"]} style={styles.container}>
-
       {/* Branded Header (on the gradient) */}
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} />
@@ -82,7 +84,6 @@ const LoginScreen = () => {
       {/* White Card (slides up over the gradient) */}
       {/* Large top-left/right border radius creates the "sheet" effect */}
       <View style={styles.whiteCard}>
-
         {/* Email input — wrapped in a View to apply bottom margin independently */}
         <View style={styles.inputGap}>
           <CustomInput
@@ -136,6 +137,12 @@ const LoginScreen = () => {
           <Image style={styles.socialIcon} source={facebookImage} />
         </View>
 
+        {/* Dev Shortcut: jump directly to the profile tab 
+             TODO: remove before production release */}
+        <TouchableOpacity
+          style={{ marginTop: 30 }}
+          onPress={() => router.push("/(tabs)/profile" as any)}
+        ></TouchableOpacity>
       </View>
     </LinearGradient>
   );
@@ -150,7 +157,7 @@ const styles = StyleSheet.create({
 
   // Gradient Header Area
   header: {
-    paddingTop: 60,         // clears the status bar on most devices
+    paddingTop: 60, // clears the status bar on most devices
     paddingHorizontal: 40,
     paddingBottom: 30,
   },
@@ -158,7 +165,7 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     marginBottom: 20,
-    borderRadius: 20,       // softens the logo into a rounded square
+    borderRadius: 20, // softens the logo into a rounded square
   },
   helloText: {
     fontSize: 34,
@@ -169,14 +176,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "white",
     marginTop: 5,
-    opacity: 0.9,           // slightly translucent to create visual hierarchy
+    opacity: 0.9, // slightly translucent to create visual hierarchy
   },
 
   // White Card
   whiteCard: {
     flex: 1,
     backgroundColor: "white",
-    borderTopLeftRadius: 50,  // large radius creates the overlapping sheet look
+    borderTopLeftRadius: 50, // large radius creates the overlapping sheet look
     borderTopRightRadius: 50,
     paddingHorizontal: 40,
     paddingTop: 50,
@@ -192,7 +199,7 @@ const styles = StyleSheet.create({
   // Pulls the forgot-password link flush to the right edge of the card
   forgotContainer: {
     alignSelf: "flex-end",
-    marginTop: -10,         // tucks it tighter under the password field
+    marginTop: -10, // tucks it tighter under the password field
     marginRight: 10,
   },
   forgotText: {
@@ -208,7 +215,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // "Or" Divider 
+  // "Or" Divider
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -218,7 +225,7 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: "#ccc",  // light grey rule on either side of "Or"
+    backgroundColor: "#ccc", // light grey rule on either side of "Or"
   },
   orText: {
     marginHorizontal: 10,
@@ -231,7 +238,7 @@ const styles = StyleSheet.create({
   socialContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "70%",             // narrower than the card so icons feel grouped
+    width: "70%", // narrower than the card so icons feel grouped
     marginTop: 30,
   },
   socialIcon: {
