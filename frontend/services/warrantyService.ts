@@ -6,10 +6,7 @@
  * ============================================================================
  * 
  * Handles all Firebase Firestore operations for warranties.
- * Separates database logic from UI components.
- * 
- * @author BillVault Team - Warranty Tracker Module
- * @date 2025-01-01
+ * Separates database logic from UI components
  */
 
 import { 
