@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,8 +21,13 @@ const CheckEmailScreen: React.FC = () => {
   // Handlers 
 
   // Opens the device's default mail app via the mailto: URI scheme
-  const handleOpenEmail = () => {
+  const handleOpenEmail = async () => {
+  const canOpen = await Linking.canOpenURL("mailto:");
+  if (canOpen) {
     Linking.openURL("mailto:");
+  } else {
+    Alert.alert("No email app found", "Please check your email manually.");
+  }
   };
 
   // Render
@@ -56,17 +62,11 @@ const CheckEmailScreen: React.FC = () => {
         </View>
 
         {/* Secondary action: dismiss and confirm the email later */}
-        <TouchableOpacity onPress={() => router.push("/(tabs)" as any)}>
+        <TouchableOpacity onPress={() => router.replace("/(tabs)" as any)}>
           <Text style={styles.skipText}>Skip, I'll confirm later</Text>
         </TouchableOpacity>
 
       </View>
-
-      {/* Dev / Temp shortcut: jump directly to the new-password screen
-           TODO: remove or gate behind a flag before production release */}
-      <TouchableOpacity onPress={() => router.push("/auth/new-password" as any)}>
-        <Text style={styles.skipText}>New Password</Text>
-      </TouchableOpacity>
 
       {/* Bottom Help Note */}
       {/* Gives the user a fallback if the email never arrives */}
