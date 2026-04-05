@@ -1,6 +1,5 @@
 import profile from "@/assets/images/icons/profile.png";
 import { CustomButton, CustomInput } from "@/components/ui";
-
 import { Checkbox } from "expo-checkbox";
 import { Link, router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -71,33 +70,26 @@ const RegisterScreen = () => {
     }).start();
   };
 
+  // Validate email
   const validateEmail = (text: string) => {
     setEmail(text);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setEmailError(
-      text && !emailRegex.test(text) ? "Enter a valid email address" : ""
-    );
+    setEmailError(text && !emailRegex.test(text) ? "Enter a valid email address" : "");
   };
 
+  // Validate password (min 8 characters)
   const validatePassword = (text: string) => {
     setPassword(text);
-    const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$/;
-
-    setPasswordError(
-      !strongRegex.test(text)
-        ? "12+ characters (14+ recommended) with upper, lower, number & symbol"
-        : ""
-    );
+    setPasswordError(text.length < 8 ? "Password must be at least 8 characters" : "");
   };
 
+  // Validate confirm password
   const validateConfirmPassword = (text: string) => {
     setConfirmPassword(text);
-    setConfirmPasswordError(
-      text && text !== password ? "Passwords do not match" : ""
-    );
+    setConfirmPasswordError(text && text !== password ? "Passwords do not match" : "");
   };
 
+  // Register handler
   const handlePress = async () => {
     if (
       !name ||
@@ -126,144 +118,128 @@ const RegisterScreen = () => {
         agreeTerms: isChecked,
       };
 
-      const response = await authAPI.register(payload, {
-        headers: { Authorization: undefined },
-      });
+      const response = await authAPI.register(payload);
 
       const data = response.data as { token?: string; access?: string };
 
-      if (data?.token) {
-        await AsyncStorage.setItem("token", data.access ?? "");
+      if (data?.access) {
+        await AsyncStorage.setItem("token", data.access);
       }
+      if (name) await AsyncStorage.setItem("full_name", name);
+      if (email) await AsyncStorage.setItem("email", email);
 
-      // Save the name the user typed so home screen can show "Hi [name]!"
-      if (name) {
-        await AsyncStorage.setItem("full_name", name);
-      }
-
-      if (email) {
-        await AsyncStorage.setItem("email", email);
-      }
-
-      // Alert.alert("Success 🎉", "Your account has been created");
+      Alert.alert("Success 🎉", "Your account has been created");
       router.push("/auth/registration-success");
-    } catch {
-      Alert.alert("Error", "Something went wrong. Try again.");
+    } catch (error: any) {
+      console.log("REGISTER ERROR:", error?.response?.data || error.message);
+      Alert.alert(
+        "Registration Failed",
+        error?.response?.data?.message || "Check your internet or backend server"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={[COLORS.accent, COLORS.background]}
-      style={{ flex: 1 }}
-    >
+    <LinearGradient colors={[COLORS.accent, COLORS.background]} style={{ flex: 1 }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 20}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "space-between", paddingBottom: 30 }}
         >
           <Animated.View
             style={{
+              flex: 1,
+              paddingHorizontal: 16,
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
             }}
           >
             {/* Header */}
-            <View className="items-center mt-10">
+            <View style={{ alignItems: "center", marginTop: 40 }}>
               <View
-                style={{ backgroundColor: COLORS.primary }}
-                className="rounded-3xl size-16 justify-center items-center shadow-xl"
+                style={{
+                  backgroundColor: COLORS.primary,
+                  borderRadius: 24,
+                  width: 64,
+                  height: 64,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                <Image source={profile} className="size-10" />
+                <Image source={profile} style={{ width: 40, height: 40 }} />
               </View>
 
               <Text
-                style={{ color: COLORS.primary }}
-                className="text-3xl font-extrabold mt-5 tracking-wide"
+                style={{
+                  color: COLORS.primary,
+                  fontSize: 26,
+                  fontWeight: "bold",
+                  marginTop: 16,
+                }}
               >
                 Create Account
               </Text>
 
-              <Text
-                style={{ color: COLORS.secondary }}
-                className="text-base mt-2"
-              >
+              <Text style={{ color: COLORS.secondary, marginTop: 6 }}>
                 Smart bill tracking starts here
               </Text>
             </View>
 
-            {/* Form Card */}
-            <View className="mx-5 mt-7 relative">
-              <View
-                style={{ backgroundColor: COLORS.accent }}
-                className="absolute -top-3 -left-3 -right-3 h-20 rounded-[30px] opacity-60"
-              />
-
-              <View className="bg-white p-6 rounded-[28px] shadow-lg">
+            {/* Form */}
+            <View style={{ marginTop: 20 }}>
+              <View style={{ backgroundColor: "#fff", padding: 20, borderRadius: 24 }}>
                 <Animated.View style={{ transform: [{ scale: focusAnim }] }}>
-                  <CustomInput
-                    label="Full Name"
-                    value={name}
-                    onChangeText={setName}
-                    icon="person-outline"
-                  />
-
+                  <CustomInput label="Full Name" value={name} onChangeText={setName} />
                   <CustomInput
                     label="Email Address"
                     value={email}
                     onChangeText={validateEmail}
                     error={emailError}
-                    icon="mail-outline"
                   />
-
                   <CustomInput
                     label="Phone Number (Optional)"
                     value={number}
                     onChangeText={setNumber}
-                    icon="call-outline"
                   />
-
                   <CustomInput
                     label="Password"
                     value={password}
                     onChangeText={validatePassword}
                     secureTextEntry
                     error={passwordError}
-                    icon="lock-closed-outline"
                   />
-
                   <CustomInput
                     label="Confirm Password"
                     value={confirmPassword}
                     onChangeText={validateConfirmPassword}
                     secureTextEntry
                     error={confirmPasswordError}
-                    icon="lock-closed-outline"
                   />
                 </Animated.View>
 
                 {/* Terms */}
-                <View className="flex-row items-center mt-5">
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 15 }}>
                   <Checkbox
                     value={isChecked}
                     onValueChange={setIsChecked}
                     color={isChecked ? COLORS.primary : undefined}
                   />
-                  <Text className="ml-3 text-sm text-gray-500">
-                    I agree to the Terms & Privacy Policy
+                  <Text style={{ marginLeft: 10, color: "#555" }}>
+                    I agree to Terms & Privacy Policy
                   </Text>
                 </View>
 
-                <View className="mt-6">
+                {/* Button */}
+                <View style={{ marginTop: 20 }}>
                   <CustomButton
-                    title="Create Individual Account"
+                    title="Create Account"
                     onPress={handlePress}
                     loading={loading}
                     disabled={!isChecked}
@@ -273,18 +249,18 @@ const RegisterScreen = () => {
             </View>
 
             {/* Footer */}
-            <View className="mt-5 mb-2">
-              <Text className="text-center text-sm text-gray-600">
+            <View style={{ alignItems: "center", marginTop: 20 }}>
+              <Text style={{ textAlign: "center", color: "#555" }}>
                 Already have an account?{" "}
                 <Link
-                  href="./auth/login"
+                  href="/auth/login"
                   style={{
                     color: COLORS.secondary,
                     fontWeight: "700",
                     textDecorationLine: "underline",
                   }}
                 >
-                  Sign in
+                  Log in
                 </Link>
               </Text>
             </View>
