@@ -60,7 +60,7 @@ const LoginScreen = () => {
       }
 
       // Navigate into the main tab navigator on successful login
-      router.push("/(tabs)");
+      router.replace("/(tabs)");
     } catch (error: any) {
       // Surface a generic message — avoid leaking which field was wrong
       Alert.alert("Login Failed", "Invalid email or password");

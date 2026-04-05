@@ -35,7 +35,7 @@ const WelcomeScreen = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      router.push("./auth-choice");
+      router.replace("./auth-choice");
     }, 500);
   };
 
@@ -178,30 +178,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  // Unused styles (kept for reference / future custom button implementation)
-  buttonContainer: {
-    width: "100%",
-    marginTop: 30,
-    marginBottom: 50,
-    alignItems: "center",
-  },
-  // Lavender pill-shaped button — superseded by CustomButton but retained
-  // in case the design reverts to a fully custom implementation
-  getStartedBtn: {
-    backgroundColor: "#A289C3",   // lavender shade from the original design spec
-    borderRadius: 35,             // high radius for a perfect pill shape
-    height: 65,
-    width: width * 0.85,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,               // subtle outline visible in close-up mockups
-    borderColor: "rgba(0,0,0,0.1)",
-  },
-  getStartedText: {
-    color: "#000",
-    fontSize: 22,
-    fontWeight: "700",
-  },
 });
 
 export default WelcomeScreen;

@@ -14,22 +14,23 @@ const { width } = Dimensions.get("window");
 // Offers two paths: log in to an existing account or create a new one.
 const AuthChoiceScreen = () => {
   // Controls the loading spinner on both buttons while navigation is pending
-  const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   // Handlers 
 
   // Briefly shows a loading state, then navigates to the login screen
   const handleLogin = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
-    router.push("./login");
+    setLoginLoading(true);
+    setTimeout(() => setLoginLoading(false), 2000);
+    router.replace("./login");
   };
 
   // Briefly shows a loading state, then navigates to the account-type picker
   const handleCreateAccount = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
-    router.push("./account-type");
+    setCreateLoading(true);
+    setTimeout(() => setCreateLoading(false), 2000);
+    router.replace("./account-type");
   };
 
   // Render
@@ -60,7 +61,7 @@ const AuthChoiceScreen = () => {
         <CustomButton
           title="Login"
           onPress={handleLogin}
-          loading={loading}
+          loading={loginLoading}
           variant="secondary"
           style={{ width: "80%", borderWidth: 0 }}
         />
@@ -71,7 +72,7 @@ const AuthChoiceScreen = () => {
         <CustomButton
           title="Create Account"
           onPress={handleCreateAccount}
-          loading={loading}
+          loading={createLoading}
           variant="secondary"
           style={{ width: "80%", borderWidth: 0 }}
         />
