@@ -2,9 +2,8 @@ import { CustomButton } from "@/components/ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View, Dimensions } from "react-native";
 import girlImage from "../../assets/images/bills_woman.png";
-import { Dimensions } from "react-native";
 
 // Get the device's screen width for responsive image sizing
 const { width } = Dimensions.get("window");
@@ -17,7 +16,7 @@ const AuthChoiceScreen = () => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
 
-  // Handlers 
+  // Handlers
 
   // Briefly shows a loading state, then navigates to the login screen
   const handleLogin = () => {
