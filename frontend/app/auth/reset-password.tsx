@@ -48,7 +48,7 @@ const ResetPasswordScreen: React.FC = () => {
 
       // Navigate to the check-email screen so the user knows to look
       // in their inbox for the reset instructions
-      router.push("/auth/check-email" as any);
+      router.replace("/auth/check-email" as any);
     } catch {
       // Generic error message — specific server errors should be surfaced
       // here once the real API is wired in
