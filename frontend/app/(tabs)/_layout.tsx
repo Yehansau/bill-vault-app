@@ -101,6 +101,11 @@ export default function TabLayout() {
           name="files"
           options={{
             headerShown: true,
+            headerTitle: "My Bills",
+            headerTitleAlign: "center",
+            headerTitleStyle: { color: "#000", fontSize: 18 },
+            headerTintColor: "#000",
+            headerStyle: { backgroundColor: "#fff" },
             title: "Files",
             tabBarIcon: ({ focused }) => (
               <TabIcon focused={focused} icon={files} />
