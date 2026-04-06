@@ -1,5 +1,3 @@
-// types/warranty.types.ts
-
 /**
  * ============================================================================
  * WARRANTY TYPE DEFINITIONS
@@ -7,9 +5,6 @@
  * 
  * TypeScript interfaces for warranty data structure.
  * Ensures type safety across the entire warranty tracker feature.
- * 
- * @author BillVault Team - Warranty Tracker Module
- * @date 2025-01-01
  */
 
 /**

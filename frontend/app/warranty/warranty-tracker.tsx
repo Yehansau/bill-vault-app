@@ -13,9 +13,6 @@
  * - Color-coded status badges
  * - Pull-to-refresh
  * - Navigate to detail screen on card tap
- * 
- * @author BillVault Team - Warranty Tracker Module
- * @date 2025-01-01
  */
 
 import React, { useState, useEffect } from 'react';

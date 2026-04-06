@@ -41,7 +41,10 @@ api.interceptors.response.use(
   async (error) => {
     // No response → network issue
     if (!error.response) {
-      Alert.alert("Network Error", "Please check your connection and try again.");
+      Alert.alert(
+        "Network Error",
+        "Please check your connection and try again.",
+      );
       return Promise.reject(error);
     }
 
@@ -76,7 +79,6 @@ api.interceptors.response.use(
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-
       } catch (refreshError) {
         // Refresh also failed → force logout
         await handleLogout();
@@ -95,7 +97,12 @@ api.interceptors.response.use(
 );
 
 const handleLogout = async () => {
-  await AsyncStorage.multiRemove(["token", "refresh_token", "email", "full_name"]);
+  await AsyncStorage.multiRemove([
+    "token",
+    "refresh_token",
+    "email",
+    "full_name",
+  ]);
   Alert.alert("Session Expired", "Please log in again.");
   // If you have a router ref or navigation, redirect to login here
 };

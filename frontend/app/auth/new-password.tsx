@@ -55,7 +55,7 @@ const NewPasswordScreen: React.FC = () => {
       // On success, inform the user then redirect to login so they can sign in
       // with their new credentials
       Alert.alert("Success", "Your password has been reset!", [
-        { text: "OK", onPress: () => router.push("/auth/login" as any) },
+        { text: "OK", onPress: () => router.replace("/auth/login" as any) },
       ]);
     } catch {
       // Generic error — specific server messages should be surfaced here once
@@ -103,7 +103,7 @@ const NewPasswordScreen: React.FC = () => {
         {/* marginTop applied inline to avoid a one-off style entry for a single rule */}
         <Text style={[styles.inputLabel, { marginTop: 16 }]}>Confirm Password</Text>
         <CustomInput
-          placeholder=""
+          placeholder="Re-enter your password"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry   // masks input characters
