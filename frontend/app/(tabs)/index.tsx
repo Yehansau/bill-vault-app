@@ -56,6 +56,8 @@ import { useState, useEffect } from "react";
 // ✅ WARRANTY TRACKER IMPORTS (ADDED)
 import { getWarranties } from "../../services/warrantyService";
 import { Warranty } from "../../types/warranty.types";
+import SearchBar from "@/components/home/SearchBar";
+import ProgressBar from "@/components/home/ProgressBar";
 
 /**
  * Horizontal divider line between sections
@@ -168,6 +170,8 @@ export default function App() {
       ──────────────────────────────────────── */}
       <Text className="text-2xl font-bold mt-2">Hi John!</Text>
 
+      <SearchBar />
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -200,6 +204,7 @@ export default function App() {
                     </Text>
                   </View>
                 </View>
+                <ProgressBar progress={67}/>
                 <Text className="text-white text-md font-semibold">
                   20GB of 35GB Used
                 </Text>
