@@ -26,8 +26,26 @@ interface Props {
   color: string;
 }
 
+interface ChartDataItem {
+  category: string;
+  amount: number;
+  color: string;
+}
+
+interface CategoryData extends ChartDataItem {
+  percentage: number;
+}
+
+interface AnalyticsData {
+  chart_data: ChartDataItem[];
+  total_spending: number;
+  number_of_bills: number;
+  average_bill_amount: number;
+  categories: CategoryData[];
+}
+
 export default function Analytics() {
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch analytics on component mount
@@ -36,6 +54,8 @@ export default function Analytics() {
       try {
         const res = await analyticsAPI.getSummary();
         setAnalyticsData(res.data);
+        console.log("Analytics data:", res.data.chart_data);
+        console.log("Analytics data:", res.data.categories);
       } catch (err: any) {
         if (err.response?.status === 401) {
           Alert.alert(
@@ -135,14 +155,19 @@ export default function Analytics() {
           }}
         >
           <PieChart
-            data={analyticsData.chart_data}
+            data={analyticsData.chart_data.map(item => ({
+              value: item.amount,        // Map 'amount' to 'value'
+              color: item.color,         // Keep 'color'
+              text: item.category,       // Map 'category' to 'text' for labels
+              focused: true,
+            }))}             // Optional: highlight segments
             donut
             innerRadius={70}
             strokeColor="white"
             strokeWidth={5}
             showExternalLabels
             externalLabelComponent={(item) => (
-              <SvgText fill="black" fontSize={18} fontWeight="bold">
+              <SvgText fill="black" fontSize={12} fontWeight="bold" textAnchor="middle" alignmentBaseline="hanging">
                 {item?.text || ""}
               </SvgText>
             )}
@@ -175,16 +200,15 @@ export default function Analytics() {
         </View>
 
         {/* Category-wise spending */}
-        <View className="px-5 mt-5">
-          <Text className="text-xl text-gray-500 font-bold mb-3">
+        <View className="px-10 mt-5">
+          <Text className="text-xl text-gray-500 font-bold mb-5 mt-5">
             Categories
           </Text>
-          {analyticsData.categories &&analyticsData.categories.map(
+          {analyticsData.chart_data && analyticsData.chart_data.map(
             (
               item: {
                 category: string;
                 amount: number;
-                percentage: number;
                 color: string;
               },
               index: Key | null | undefined,
@@ -193,7 +217,7 @@ export default function Analytics() {
                 key={index}
                 category={item.category}
                 amount={item.amount}
-                percentage={item.percentage}
+                percentage={60} // Placeholder percentage, replace with actual if available
                 color={item.color}
               />
             ),
