@@ -1,12 +1,11 @@
-// services/warrantyService.ts
-
 /**
  * ============================================================================
  * WARRANTY SERVICE
  * ============================================================================
  * 
  * Handles all Firebase Firestore operations for warranties.
- * Separates database logic from UI components
+ * Separates database logic from UI components.
+ * 
  */
 
 import { 
