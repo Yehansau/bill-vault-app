@@ -34,7 +34,7 @@ export default function Analytics() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await analyticsAPI.get();
+        const res = await analyticsAPI.getSummary();
         setAnalyticsData(res.data);
       } catch (err: any) {
         if (err.response?.status === 401) {
@@ -169,7 +169,7 @@ export default function Analytics() {
           />
           <SummaryCard
             title="Average Bill Amount"
-            value={`Rs. ${analyticsData.average_bill_amount}`}
+            value={`Rs. ${Math.round(analyticsData.average_bill_amount)}`}
             image={chart}
           />
         </View>
@@ -179,7 +179,7 @@ export default function Analytics() {
           <Text className="text-xl text-gray-500 font-bold mb-3">
             Categories
           </Text>
-          {analyticsData.categories.map(
+          {analyticsData.categories &&analyticsData.categories.map(
             (
               item: {
                 category: string;
@@ -205,7 +205,7 @@ export default function Analytics() {
 }
 
 const SummaryCard = ({ title, value, image }: any) => (
-  <View className="flex-row justify-between items-center bg-white p-5 rounded-2xl shadow-md">
+  <View className="flex-row justify-between items-center bg-white p-5 px-6 rounded-full shadow-md mt-2">
     <View>
       <Text className="text-gray-400 font-medium">{title}</Text>
       <Text className="text-black font-bold text-xl mt-1">{value}</Text>
