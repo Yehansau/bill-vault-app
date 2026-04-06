@@ -7,6 +7,7 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import total from "@/assets/images/total.png";
 import bills from "@/assets/images/bills.png";
@@ -18,6 +19,7 @@ import { Text as SvgText } from "react-native-svg";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import { analyticsAPI } from "@/services/api";
+import { useRouter } from "expo-router";
 
 interface Props {
   category: string;
@@ -45,6 +47,7 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
+  const router = useRouter();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -140,7 +143,7 @@ export default function Analytics() {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white px-5">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 50 }}
@@ -181,7 +184,7 @@ export default function Analytics() {
         </Animated.View>
 
         {/* Summary Cards */}
-        <View className="px-5 mt-5 space-y-4">
+        <View className="mt-5 space-y-4">
           <SummaryCard
             title="Total Spending"
             value={`Rs. ${analyticsData.total_spending}`}
@@ -200,10 +203,24 @@ export default function Analytics() {
         </View>
 
         {/* Category-wise spending */}
-        <View className="px-10 mt-5">
-          <Text className="text-xl text-gray-500 font-bold mb-5 mt-5">
-            Categories
-          </Text>
+        <View className="px-10 mt-5 bg-white p-5 px-6 rounded-2xl border border-gray-200 shadow-md">
+          <View className="flex-row justify-between my-4">
+            <Text className="text-xl text-gray-500 font-bold">
+              Categories
+            </Text>
+            <View className="rounded-lg h-auto overflow-hidden w-full justify-center items-center">
+              <LinearGradient
+                colors={["#944ABC", "#3B0856"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ flex: 1, padding: 10, borderRadius: 50}}
+              >
+                <TouchableOpacity onPress={() => router.push("/budget")}>
+                  <Text className="text-white text-md font-bold">Budget Setting</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          </View>
           {analyticsData.chart_data && analyticsData.chart_data.map(
             (
               item: {
