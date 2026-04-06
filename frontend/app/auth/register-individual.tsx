@@ -101,7 +101,7 @@ const RegisterScreen = () => {
       confirmPasswordError ||
       !isChecked
     ) {
-      Alert.alert("Fix required", "Please complete the form correctly");
+      Alert.alert("Fix required", "Please fill all the required fields. ");
       return;
     }
 
@@ -159,6 +159,7 @@ const RegisterScreen = () => {
               paddingHorizontal: 16,
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
+              flex: 1,
             }}
           >
             {/* Header */}
@@ -243,6 +244,12 @@ const RegisterScreen = () => {
                     onPress={handlePress}
                     loading={loading}
                     disabled={!isChecked}
+                    style={{ minHeight: 50 }}
+                    textStyle={{ 
+                      numberOfLines: 1,
+                      adjustsFontSizeToFit: true,
+                      flexShrink: 1
+                    }}
                   />
                 </View>
               </View>
