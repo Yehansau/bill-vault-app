@@ -58,10 +58,13 @@ import { getWarranties } from "../../services/warrantyService";
 import { Warranty } from "../../types/warranty.types";
 import SearchBar from "@/components/home/SearchBar";
 import ProgressBar from "@/components/home/ProgressBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Horizontal divider line between sections
  */
+
+
 const HorizontalRule = () => {
   return <View className="w-3/4 bg-gray-200 h-1 my-4 mx-auto" />;
 };
@@ -70,7 +73,16 @@ const HorizontalRule = () => {
  * Home Screen Component
  */
 export default function App() {
+
   const router = useRouter();
+  const [userName, setUserName] = useState("");
+
+useEffect(() => {
+  AsyncStorage.getItem("full_name").then((name) =>
+      setUserName(name || "Your name")
+    );
+}, []);
+
 
   // ========== WARRANTY STATE (ADDED) ==========
   
@@ -168,7 +180,7 @@ export default function App() {
           GREETING
           (EXISTING - UNCHANGED)
       ──────────────────────────────────────── */}
-      <Text className="text-2xl font-bold mt-2">Hi John!</Text>
+      <Text className="text-2xl font-bold mt-2">Hi {userName}!</Text>
 
       <SearchBar />
 
