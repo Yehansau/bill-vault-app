@@ -2,91 +2,138 @@ import { CustomButton } from "@/components/ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import logo from "../../assets/images/LogoPicture.png";
+import { Image, StyleSheet, Text, View, Dimensions } from "react-native";
+import girlImage from "../../assets/images/bills_woman.png";
 
+// Get the device's screen width for responsive image sizing
+const { width } = Dimensions.get("window");
+
+// AuthChoiceScreen
+// Landing screen shown to unauthenticated users.
+// Offers two paths: log in to an existing account or create a new one.
 const AuthChoiceScreen = () => {
-  const [loading, setLoading] = useState(false);
+  // Controls the loading spinner on both buttons while navigation is pending
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
+  // Handlers
+
+  // Briefly shows a loading state, then navigates to the login screen
   const handleLogin = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
-    router.push("./login");
+    setLoginLoading(true);
+    setTimeout(() => setLoginLoading(false), 2000);
+    router.replace("./login");
   };
 
+  // Briefly shows a loading state, then navigates to the account-type picker
   const handleCreateAccount = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
-    router.push("./account-type");
+    setCreateLoading(true);
+    setTimeout(() => setCreateLoading(false), 2000);
+    router.replace("./account-type");
   };
 
+  // Render
   return (
+    // Full-screen vertical gradient: light purple at the top, deep purple at the bottom
     <LinearGradient
-      colors={["#944ABC", "#3B0856"]}
+      colors={["#9B4FD6", "#3B0856"]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
+      end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Image source={logo} style={styles.logo} />
-        <Text style={styles.title}>BILLVAULT</Text>
-        <Text style={styles.subtitle}>NEVER LOSE A BILL AGAIN</Text>
+      {/* Branding Header */}
+      <View style={styles.header}>
+        <Text style={styles.welcome}>Welcome to</Text>
+        {/* App name styled larger and in white to stand out against the gradient */}
+        <Text style={styles.brand}>BillVault.</Text>
       </View>
 
+      {/* Hero Image */}
+      {/* Illustrative graphic that fills most of the screen's visual space */}
+      <View style={styles.imageContainer}>
+        <Image source={girlImage} style={styles.image} />
+      </View>
+
+      {/* Action Buttons */}
+      {/* Stacked vertically; both share the same loading state */}
       <View style={styles.buttonContainer}>
         <CustomButton
           title="Login"
           onPress={handleLogin}
-          loading={loading}
+          loading={loginLoading}
           variant="secondary"
+          style={{ width: "80%", borderWidth: 0 }}
         />
 
+        {/* Vertical gap between the two buttons */}
         <View style={styles.spacing} />
 
         <CustomButton
           title="Create Account"
           onPress={handleCreateAccount}
-          loading={loading}
+          loading={createLoading}
           variant="secondary"
+          style={{ width: "80%", borderWidth: 0 }}
         />
       </View>
     </LinearGradient>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
+  // Fills the full screen; content flows top-down with generous horizontal padding
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: "space-between",
+    paddingHorizontal: 25,
+    paddingTop: 80,
+    justifyContent: "flex-start",
   },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+
+  // Slight left indent to visually align the text with the rest of the layout
+  header: {
+    marginTop: 20,
+    marginLeft: 35,
   },
-  logo: {
-    height: 130,
-    width: 130,
-    marginBottom: 30,
+
+  welcome: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "black",
   },
-  title: {
-    fontSize: 36,
+
+  // Larger and white so the brand name dominates the header area
+  brand: {
+    fontSize: 32,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 10,
+    marginTop: 5,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "white",
-    textAlign: "center",
+
+  imageContainer: {
+    alignItems: "center",
+    marginTop: 60,
   },
+
+  // Scales the image proportionally to 85% of screen width on any device
+  // Negative bottom margin pulls the button section upward, closing the gap
+  image: {
+    width: width * 0.85,
+    height: width * 0.85,
+    resizeMode: "contain",
+    marginBottom: -30,
+  },
+
+  // Centred column; bottom padding keeps the buttons clear of the home indicator
   buttonContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 40,
+    paddingBottom: 50,
+    marginTop: 80,
+    alignItems: "center",
   },
+
+  // Fixed-height spacer between the Login and Create Account buttons
   spacing: {
-    height: 20,
+    height: 18,
   },
 });
 

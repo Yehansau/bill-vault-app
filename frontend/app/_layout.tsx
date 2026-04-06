@@ -15,6 +15,8 @@ export default function RootLayout() {
 
         {/* Main app tabs */}
         <Stack.Screen name="(tabs)" />
+
+        <Stack.Screen name="upload" />
       </Stack>
     </>
   );

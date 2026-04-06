@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "jsx": "react-native",
     "paths": {
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
@@ -16,6 +17,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
-, "components/ui/BackButton.jsx"  ]
+    "nativewind-env.d.ts",
+    "components/ui/BackButton.jsx"
+  ]
 }
