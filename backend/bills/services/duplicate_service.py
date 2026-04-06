@@ -1,16 +1,5 @@
 def check_duplicate_by_data(user_id, merchant, bill_date, total_amount, items):
-    """
-    Check if this user already has a bill with the same merchant, date,
-    total amount, and items list.
-
-    All 4 must match to be considered a duplicate:
-        - merchant (case insensitive)
-        - bill_date
-        - total_amount
-        - sorted list of item names (case insensitive)
-
-    Returns the existing Bill if a duplicate is found, otherwise None.
-    """
+    
     from bills.models import Bill, BillItem
 
     # If we don't have enough data to compare, let it through
