@@ -1,5 +1,31 @@
 import re
+import os
+import base64
+import json
 from datetime import datetime
+
+
+def get_vision_client():
+    """
+    Build and return a Google Cloud Vision client using the same
+    service account credentials as Firebase (FIREBASE_CREDENTIALS_B64).
+    Falls back to Application Default Credentials in local dev.
+    """
+    from google.cloud import vision
+    import google.oauth2.service_account
+
+    creds_b64 = os.getenv('FIREBASE_CREDENTIALS_B64')
+    if creds_b64:
+        # Decode base64 credentials and build Vision client explicitly
+        creds_dict = json.loads(base64.b64decode(creds_b64).decode('utf-8'))
+        creds = google.oauth2.service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=['https://www.googleapis.com/auth/cloud-platform']
+        )
+        return vision.ImageAnnotatorClient(credentials=creds)
+
+    # Local dev fallback — uses Application Default Credentials
+    return vision.ImageAnnotatorClient()
 
 
 def extract_text_from_url(image_url: str, language: str) -> str:
@@ -9,7 +35,7 @@ def extract_text_from_url(image_url: str, language: str) -> str:
     """
     from google.cloud import vision
 
-    client = vision.ImageAnnotatorClient()
+    client = get_vision_client()
     image = vision.Image()
     image.source.image_uri = image_url
 
@@ -149,10 +175,10 @@ def extract_items(lines: list) -> list:
             name = price_pattern.split(line)[0].strip()
 
             # Clean up name
-            name = re.sub(r'^\(\d+\)\s*', '', name)   # remove (1) prefix
-            name = re.sub(r'^\d+\s+', '', name)        # remove "1 " prefix
+            name = re.sub(r'^\(\d+\)\s*', '', name)        # remove (1) prefix
+            name = re.sub(r'^\d+\s+', '', name)             # remove "1 " prefix
             name = re.sub(r'\s+\d+\s*[xX]\s*$', '', name)  # remove "1 x" suffix
-            name = re.sub(r'\s+\d+\s*$', '', name)    # remove trailing quantity
+            name = re.sub(r'\s+\d+\s*$', '', name)          # remove trailing quantity
             name = name.strip()
 
             # Last decimal number = price

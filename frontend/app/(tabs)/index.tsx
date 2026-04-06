@@ -277,6 +277,8 @@ export default function App() {
             }}
           />
         </View>
+        <TouchableOpacity className="text-2xl font-bold text-black" onPress={() => router.push("/upload/bill-review")}>
+          <Text>test</Text></TouchableOpacity>
       </ScrollView>
     </View>
   );

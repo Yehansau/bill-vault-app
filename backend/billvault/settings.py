@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import base64
+import json
+import tempfile
 from dotenv import load_dotenv
 import dj_database_url
 
@@ -27,11 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-dshzba_n-r!(3&1wmtba-j#yd8()yynqmh6gt26y-6*-)#w=#o'
-SECRET_KEY = os.getenv('SECRET_KEY','django-insecure-default-key-change-this')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-this')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 _allowed_hosts = os.getenv('ALLOWED_HOSTS', '*').strip()
@@ -181,16 +182,16 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',    #allow access to all endpoints for now
+        'rest_framework.permissions.AllowAny',    # allow access to all endpoints for now
     ],
 }
 
-#JWT settings
+# JWT settings
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days = 7),   # Token valid for 7 days
-    'REFRESH_TOKEN_LIFETIME': timedelta(days = 30), #Refresh token valid for 30 days
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),    # Token valid for 7 days
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),  # Refresh token valid for 30 days
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
@@ -206,19 +207,36 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-AUTH_USER_MODEL = 'authentication.User'
 # Custom user model
+AUTH_USER_MODEL = 'authentication.User'
 
+
+# Firebase initialization
+# In production (Docker), credentials are passed as a base64-encoded JSON string
+# via FIREBASE_CREDENTIALS_B64 environment variable.
+# In local development, FIREBASE_CREDENTIALS_JSON can point to a local file path.
 
 import firebase_admin
 from firebase_admin import credentials
 
-FIREBASE_CREDENTIALS_PATH = os.getenv('FIREBASE_CREDENTIALS_JSON')
 FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
 
-# Only initialize if credentials file is actually provided
-if FIREBASE_CREDENTIALS_PATH and not firebase_admin._apps:
-    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-    firebase_admin.initialize_app(cred, {
-        'storageBucket': FIREBASE_STORAGE_BUCKET
-    })
+if not firebase_admin._apps:
+    firebase_creds_b64 = os.getenv('FIREBASE_CREDENTIALS_B64')
+    firebase_creds_path = os.getenv('FIREBASE_CREDENTIALS_JSON')
+
+    if firebase_creds_b64:
+        # Production: decode base64 string → parse JSON → load as credentials
+        creds_json = base64.b64decode(firebase_creds_b64).decode('utf-8')
+        creds_dict = json.loads(creds_json)
+        cred = credentials.Certificate(creds_dict)
+    elif firebase_creds_path:
+        # Local dev fallback: load credentials from file path
+        cred = credentials.Certificate(firebase_creds_path)
+    else:
+        cred = None
+
+    if cred:
+        firebase_admin.initialize_app(cred, {
+            'storageBucket': FIREBASE_STORAGE_BUCKET
+        })
